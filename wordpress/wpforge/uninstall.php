@@ -1,62 +1,42 @@
 <?php
 /**
- * WPForge Uninstall Handler
- * 
- * This file runs when WPForge is deleted from WordPress.
- * It cleans up all plugin data including options, tables, and files.
+ * WPForge uninstall — clean up all data on plugin deletion.
  */
-
-// Prevent direct access
-if (!defined('ABSPATH')) {
-    exit;
-}
-
-// Check if this is an uninstall request (not just deactivation)
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
 
-// Delete plugin options
-delete_option('wpforge_version');
-delete_option('wpforge_config');
-
-// Drop the logs table
 global $wpdb;
-$table_name = $wpdb->prefix . 'wpforge_logs';
-$wpdb->query("DROP TABLE IF EXISTS {$table_name}");
 
-// Remove backup files
-$upload_dir = wp_upload_dir();
-$wpforge_dir = trailingslashit($upload_dir['basedir']) . 'wpforge';
+// Drop tables
+$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}wpforge_tokens");
+$wpdb->query("DROP TABLE IF EXISTS {$wpdb->prefix}wpforge_logs");
 
-if (is_dir($wpforge_dir)) {
-    // Remove backups directory
-    $backups_dir = trailingslashit($wpforge_dir) . 'backups';
-    if (is_dir($backups_dir)) {
-        $files = glob(trailingslashit($backups_dir) . '*');
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                unlink($file);
-            }
-        }
-        rmdir($backups_dir);
+// Delete options
+delete_option('wpforge_version');
+delete_option('wpforge_enabled');
+delete_option('wpforge_config');
+delete_option('wpforge_developer_mode');
+
+// Remove log and backup directories
+$logDir = WP_CONTENT_DIR . '/wpforge-logs';
+$backupDir = WP_CONTENT_DIR . '/wpforge-backups';
+
+function wpforge_recursive_delete($dir) {
+    if (!is_dir($dir)) {
+        return;
     }
-    
-    // Remove logs directory
-    $logs_dir = trailingslashit($wpforge_dir) . 'logs';
-    if (is_dir($logs_dir)) {
-        $files = glob(trailingslashit($logs_dir) . '*');
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                unlink($file);
-            }
-        }
-        rmdir($logs_dir);
+    $items = array_diff(scandir($dir), ['.', '..']);
+    foreach ($items as $item) {
+        $path = $dir . '/' . $item;
+        is_dir($path) ? wpforge_recursive_delete($path) : unlink($path);
     }
-    
-    // Remove main wpforge dir if empty
-    @rmdir($wpforge_dir);
+    rmdir($dir);
 }
 
-// Clear any transients
-delete_transient('wpforge_rate_limit_%');
+if (is_dir($logDir)) {
+    wpforge_recursive_delete($logDir);
+}
+if (is_dir($backupDir)) {
+    wpforge_recursive_delete($backupDir);
+}

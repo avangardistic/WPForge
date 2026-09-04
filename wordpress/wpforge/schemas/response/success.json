@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Success Response",
+    "type": "object",
+    "properties": {
+        "success": { "type": "boolean", "const": true },
+        "request_id": { "type": "string" },
+        "data": { "type": ["object", "array"] }
+    },
+    "required": ["success", "request_id", "data"]
+}

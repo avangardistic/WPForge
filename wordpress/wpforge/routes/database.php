@@ -1,178 +1,68 @@
 <?php
-
-namespace WPForge\API;
-
-use WP_REST_Request;
-use WP_REST_Response;
-use WP_Error;
+use WPForge\API\Response;
+use WPForge\Database\Inspector;
 use WPForge\Core\Config;
-use WPForge\Security\Validator;
 
-/**
- * Database routes for WPForge API
- */
-class DatabaseRoutes extends BaseRoutes
-{
-    private Config $config;
-    private Validator $validator;
+$ns = WPFORGE_NAMESPACE;
+$dbInspector = new Inspector();
+$config = new Config();
 
-    public function __construct()
-    {
-        parent::__construct();
-        $this->config = new Config();
-        $this->validator = new Validator();
-    }
-
-    public static function register(): void
-    {
-        $instance = new self();
-
-        register_rest_route($instance->namespace, '/database/status', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getStatus'],
-            'permission_callback' => [$instance, 'checkPermission'],
-        ]);
-
-        register_rest_route($instance->namespace, '/database/tables', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getTables'],
-            'permission_callback' => [$instance, 'checkPermission'],
-        ]);
-
-        register_rest_route($instance->namespace, '/database/table/(?P<table>[a-zA-Z0-9_]+)', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'describeTable'],
-            'permission_callback' => [$instance, 'checkPermission'],
-        ]);
-
-        register_rest_route($instance->namespace, '/database/query', [
-            'methods' => 'POST',
-            'callback' => [$instance, 'runQuery'],
-            'permission_callback' => [$instance, 'checkQueryPermission'],
-        ]);
-    }
-
-    public function getStatus(WP_REST_Request $request): WP_REST_Response
-    {
-        global $wpdb;
-
-        return $this->successResponse([
-            'connected' => true,
-            'database' => $wpdb->dbname,
-            'host' => $wpdb->dbhost,
-            'charset' => $wpdb->charset,
-            'collate' => $wpdb->collate,
-            'version' => $wpdb->db_version(),
-            'prefix' => $wpdb->prefix,
-        ]);
-    }
-
-    public function getTables(WP_REST_Request $request): WP_REST_Response
-    {
-        global $wpdb;
-
-        $tables = $wpdb->get_results("SHOW TABLES LIKE '{$wpdb->prefix}%'", ARRAY_N);
+register_rest_route($ns, '/database/status', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($dbInspector, $config) {
+        $status = $dbInspector->getStatus();
         
-        $result = [];
-        foreach ($tables as $table) {
-            $table_name = $table[0];
-            $result[] = [
-                'name' => $table_name,
-                'rows' => (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table_name}"),
-            ];
+        // SECURITY: Redact sensitive database credentials if configured
+        if ($config->shouldRedactDbCredentials()) {
+            unset($status['database'], $status['db_user'], $status['db_host']);
         }
-
-        return $this->successResponse(['tables' => $result]);
-    }
-
-    public function describeTable(WP_REST_Request $request): WP_REST_Response
-    {
-        global $wpdb;
-
-        $table = $request->get_param('table');
         
-        // Validate table name - only allow WordPress tables
-        if (!preg_match('/^' . preg_quote($wpdb->prefix, '/') . '[a-zA-Z0-9_]+$/', $table)) {
-            return $this->errorResponse('invalid_table', 'Invalid table name.', 400);
-        }
+        return Response::success($status);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        $columns = $wpdb->get_results("DESCRIBE {$table}", ARRAY_A);
+register_rest_route($ns, '/database/tables', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($dbInspector) {
+        $tables = $dbInspector->listTables();
+        return Response::success(['tables' => $tables, 'count' => count($tables)]);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        return $this->successResponse([
-            'table' => $table,
-            'columns' => $columns,
-        ]);
-    }
-
-    public function runQuery(WP_REST_Request $request): WP_REST_Response
-    {
-        global $wpdb;
-
-        $query = trim($request->get_param('query'));
-        $allow_writes = $request->get_param('allow_writes') ?? false;
-
-        if (empty($query)) {
-            return $this->errorResponse('missing_query', 'Query is required.', 400);
-        }
-
-        // Check if query is read-only
-        if (!$this->validator->isReadOnlyQuery($query)) {
-            if (!$allow_writes || !$this->config->allowDatabaseWrites()) {
-                return $this->errorResponse(
-                    'write_not_allowed', 
-                    'Write queries are not allowed. Enable developer mode to allow writes.', 
-                    403
-                );
-            }
-        }
-
-        // Execute query
+register_rest_route($ns, '/database/tables/(?P<name>[a-zA-Z0-9_]+)', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($dbInspector) {
         try {
-            if ($this->validator->isReadOnlyQuery($query)) {
-                $results = $wpdb->get_results($query, ARRAY_A);
-                
-                if ($wpdb->last_error) {
-                    return $this->errorResponse('query_error', $wpdb->last_error, 400);
-                }
-
-                return $this->successResponse([
-                    'results' => $results ?: [],
-                    'count' => count($results ?: []),
-                    'read_only' => true,
-                ]);
-            } else {
-                // Write query
-                $result = $wpdb->query($query);
-                
-                if ($wpdb->last_error) {
-                    $this->logMutation('database_write', 'query', false, 400, 'query_error');
-                    return $this->errorResponse('query_error', $wpdb->last_error, 400);
-                }
-
-                $this->logMutation('database_write', 'query', true, 200, null, ['query' => substr($query, 0, 100)]);
-
-                return $this->successResponse([
-                    'affected_rows' => $wpdb->rows_affected,
-                    'insert_id' => $wpdb->insert_id,
-                    'read_only' => false,
-                ]);
-            }
+            $columns = $dbInspector->describeTable($request['name']);
+            return Response::success(['table' => $request['name'], 'columns' => $columns]);
         } catch (\Exception $e) {
-            return $this->errorResponse('query_failed', 'Query execution failed.', 500);
+            return Response::error('DESCRIBE_FAILED', $e->getMessage(), 400);
         }
-    }
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-    public function checkPermission(): bool|WP_Error
-    {
-        $auth = $this->checkAuth();
-        if (is_wp_error($auth)) {
-            return $auth;
+register_rest_route($ns, '/database/query', [
+    'methods'             => 'POST',
+    'callback'            => function ($request) use ($dbInspector) {
+        $data = $request->get_json_params();
+        if (empty($data['sql'])) {
+            return Response::error('MISSING_QUERY', 'SQL query is required', 400);
         }
-        return $this->checkCapability('manage_options');
-    }
-
-    public function checkQueryPermission(): bool|WP_Error
-    {
-        return $this->checkPermission();
-    }
-}
+        $config = new Config();
+        $trimmed = ltrim($data['sql']);
+        if (stripos($trimmed, 'SELECT') !== 0) {
+            if (!$config->allowDatabaseWrites()) {
+                return Response::error('WRITES_DISABLED', 'Write queries are disabled', 403);
+            }
+        }
+        try {
+            return Response::success($dbInspector->query($data['sql'], $data['params'] ?? []));
+        } catch (\Exception $e) {
+            return Response::error('QUERY_FAILED', $e->getMessage(), 400);
+        }
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);

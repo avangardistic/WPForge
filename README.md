@@ -1,115 +1,157 @@
-# WPForge
+# WPForge — AI-Powered WordPress Remote Control & Development Bridge
 
-**AI-Powered WordPress Remote Control & Development Bridge**
-
-WPForge is a production-quality WordPress plugin that exposes a structured, secure HTTP API allowing AI coding agents (such as Claude Code, Claude Desktop, Qwen, or other MCP-compatible agents) to remotely inspect, develop, modify, configure, and maintain a WordPress website.
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
+[![PHP](https://img.shields.io/badge/PHP-8.1+-777bb4.svg)](https://php.net)
+[![WordPress](https://img.shields.io/badge/WordPress-6.0+-0073aa.svg)](https://wordpress.org)
 
 ## Overview
 
-WPForge provides developer-level control over a WordPress installation through a well-documented REST API namespace: `/wp-json/wpforge/v1/`
+WPForge is a production-grade WordPress plugin that provides a secure, structured HTTP API for AI agents to remotely inspect, develop, modify, and maintain WordPress websites.
 
-### Key Features
-
-- **Site Inspection**: Comprehensive discovery of WordPress environment, plugins, themes, Elementor status
-- **Content Management**: Full CRUD operations for posts, pages, custom post types
-- **Media Handling**: Upload, manage, and organize media assets
-- **Elementor Integration**: Deep inspection and modification of Elementor documents and templates
-- **Filesystem Access**: Controlled read/write access to WordPress files with path traversal protection
-- **Database Inspection**: Read-only SQL queries and table discovery
-- **Plugin/Theme Management**: List, activate, deactivate, install plugins and themes
-- **Backup System**: Create and manage database backups before destructive operations
-- **Audit Logging**: Complete audit trail of all mutating operations
-- **MCP Compatible**: Designed for integration with Model Context Protocol servers
-
-## Security Model
-
-WPForge implements a controlled "developer mode" with explicit operation handlers:
-
-- ✅ Authentication required for ALL mutating operations
-- ✅ WordPress Application Passwords support
-- ✅ Capability-based authorization
-- ✅ Path traversal protection
-- ✅ No arbitrary shell execution
-- ✅ No unrestricted SQL writes by default
-- ✅ Audit logging for all mutations
-- ✅ Structured error responses (no stack traces)
+**Key Features:**
+- 🔐 Secure authentication via Application Passwords and API Tokens
+- 📊 Complete site inspection and diagnostics
+- 📝 Full CRUD operations for posts, pages, and custom post types
+- 🎨 Elementor integration with document and template management
+- 📁 Controlled filesystem access with path traversal protection
+- 🗄️ Database inspection with read/write control
+- 💾 Backup creation and management
+- 📋 Comprehensive audit logging
+- 🤖 MCP (Model Context Protocol) compatible
 
 ## Installation
 
-1. Download the WPForge plugin
-2. Upload to `wp-content/plugins/wpforge/`
-3. Activate the plugin in WordPress Admin
-4. Configure authentication (Application Passwords recommended)
-5. Test connectivity: `GET /wp-json/wpforge/v1/status`
+1. Upload the `wpforge` folder to `/wp-content/plugins/`
+2. Activate via WordPress Admin → Plugins
+3. Test: `GET /wp-json/wpforge/v1/status`
 
 ## Quick Start
 
 ```bash
-# Check API status
-curl -u "username:application_password" \
-  https://example.com/wp-json/wpforge/v1/status
+# System status
+curl -u "user:password" https://example.com/wp-json/wpforge/v1/status
 
-# Get site diagnostics
-curl -u "username:application_password" \
-  https://example.com/wp-json/wpforge/v1/diagnostics
+# Site inspection
+curl -u "user:password" https://example.com/wp-json/wpforge/v1/site
 
-# List pages
-curl -u "username:application_password" \
-  https://example.com/wp-json/wpforge/v1/pages
+# List posts
+curl -u "user:password" https://example.com/wp-json/wpforge/v1/posts
 
-# Inspect Elementor status
-curl -u "username:application_password" \
-  https://example.com/wp-json/wpforge/v1/elementor/status
+# Create post
+curl -X POST -u "user:password" \
+     -H "Content-Type: application/json" \
+     -d '{"post_title":"Hello","post_content":"<p>World</p>","post_status":"publish"}' \
+     https://example.com/wp-json/wpforge/v1/posts
+
+# Elementor documents
+curl -u "user:password" https://example.com/wp-json/wpforge/v1/elementor/documents
+
+# Read file
+curl -u "user:password" "https://example.com/wp-json/wpforge/v1/files/read?path=wp-content/themes/twentytwentyfour/style.css"
+
+# Database query
+curl -X POST -u "user:password" \
+     -H "Content-Type: application/json" \
+     -d '{"sql":"SELECT COUNT(*) as count FROM wp_posts WHERE post_type = :type","params":{"type":"post"}}' \
+     https://example.com/wp-json/wpforge/v1/database/query
+
+# Create backup
+curl -X POST -u "user:password" https://example.com/wp-json/wpforge/v1/backup
+
+# Full diagnostics
+curl -u "user:password" https://example.com/wp-json/wpforge/v1/diagnostics
 ```
 
-## Documentation
+## API Endpoints (40+)
 
-- [Architecture](docs/architecture.md)
-- [Installation Guide](docs/installation.md)
-- [Authentication](docs/authentication.md)
-- [API Reference](docs/api-reference.md)
-- [Security](docs/security.md)
-- [Elementor Integration](docs/elementor.md)
-- [Filesystem Access](docs/filesystem.md)
-- [Database Access](docs/database.md)
-- [Troubleshooting](docs/troubleshooting.md)
+| Category | Endpoints |
+|----------|-----------|
+| **System** | `/status`, `/capabilities`, `/environment`, `/health`, `/` |
+| **Site** | `/site`, `/site/structure`, `/site/routes` |
+| **Content** | `/posts`, `/pages` (full CRUD) |
+| **Media** | `/media`, `/media/upload` |
+| **Taxonomies** | `/taxonomies/{type}/terms` (CRUD) |
+| **Users** | `/users` (CRUD) |
+| **Menus** | `/menus`, `/menus/locations` |
+| **Themes** | `/themes`, `/themes/activate` |
+| **Plugins** | `/plugins`, `/plugins/activate`, `/plugins/deactivate` |
+| **Elementor** | `/elementor/status`, `/elementor/documents`, `/elementor/templates` |
+| **Filesystem** | `/files/list`, `/files/read`, `/files/write`, `/files/delete` |
+| **Database** | `/database/status`, `/database/tables`, `/database/query` |
+| **Backup** | `/backup` (create, list, get, delete) |
+| **Cache** | `/cache/flush`, `/cache/status` |
+| **Diagnostics** | `/diagnostics`, `/diagnostics/quick` |
+| **Logs** | `/logs`, `/logs/clear` |
+
+## Architecture
+
+```
+wpforge/
+├── wordpress/wpforge/         # WordPress plugin (58 PHP files)
+│   ├── src/Core/              # Plugin bootstrap, Container, Config
+│   ├── src/API/               # Router, Response, Controller, Middleware
+│   ├── src/Auth/              # Authenticator, TokenManager, Capabilities
+│   ├── src/Security/          # Validator, Sanitizer, PathValidator
+│   ├── src/WordPress/         # SiteInspector, PostManager, + 7 more
+│   ├── src/Elementor/         # Adapter, DocumentManager, + 4 more
+│   ├── src/Filesystem/        # Manager, SecurityGuard, Reader, Writer
+│   ├── src/Database/          # Inspector, QueryBuilder, Executors
+│   ├── src/Backup/            # Manager, DB/File Backup, Restore, Cleanup
+│   ├── src/Diagnostics/       # SystemCheck, Permissions, Components, Health
+│   ├── src/Logging/           # Manager, Writer, Rotator, Filter
+│   └── routes/                # 15 route files
+├── mcp/                       # MCP server (TypeScript)
+├── tests/                     # PHPUnit tests
+├── docs/                      # 12 documentation files
+├── examples/                  # cURL, JS, Python clients
+└── tools/                     # Build, validate, docs generators
+```
+
+## Security
+
+- ✅ Application Passwords (recommended) + Bearer tokens
+- ✅ WordPress capability checks on every mutation
+- ✅ Path traversal protection on filesystem operations
+- ✅ SQL injection prevention via prepared statements
+- ✅ Read-only database mode by default
+- ✅ Configurable write/delete permissions
+- ✅ Rate limiting (100 req/60s default)
+- ✅ Audit logging for all mutations
+- ✅ Sensitive data redaction in logs
 
 ## MCP Integration
 
-WPForge includes an MCP server adapter for seamless integration with AI agents:
-
 ```bash
-cd mcp/
-# See mcp/README.md for setup instructions
+cd mcp/ && npm install && npm run build
+export WPFORGE_BASE_URL=https://your-site.com
+export WPFORGE_USERNAME=admin
+export WPFORGE_PASSWORD=your-app-password
+npm start
 ```
 
-## Removal
+35 MCP tools available for AI agents (see `mcp/README.md`).
 
-To completely remove WPForge:
+## Documentation
 
-1. Deactivate the plugin in WordPress Admin
-2. Delete the plugin
-3. Remove `wp-content/plugins/wpforge/` directory
-4. Optionally clean up logs and backups via the API before removal
-
-See [docs/removal.md](docs/removal.md) for detailed instructions.
+- [Installation](docs/INSTALLATION.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [API Reference](docs/API_REFERENCE.md)
+- [Authentication](docs/AUTHENTICATION.md)
+- [Security](docs/SECURITY.md)
+- [Elementor](docs/ELEMENTOR.md)
+- [Filesystem](docs/FILESYSTEM.md)
+- [Database](docs/DATABASE.md)
+- [Backup](docs/BACKUP.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Removal](docs/REMOVAL.md)
 
 ## Requirements
 
-- WordPress 6.x+
+- WordPress 6.0+
 - PHP 8.1+
 - MySQL/MariaDB
 - HTTPS recommended
-- WordPress REST API enabled
 
 ## License
 
-MIT License - see LICENSE file for details.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
-
----
-
-**Note**: WPForge provides powerful access to your WordPress installation. Use only in trusted environments and remove when no longer needed.
+MIT License — see [LICENSE](LICENSE) file.

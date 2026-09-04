@@ -1,19 +1,19 @@
-```
-# WordPress specific
+# Dependencies
+/vendor/
+/node_modules/
+/package-lock.json
+
+# WordPress
 wp-content/cache/
-wp-content/uploads/
-*.sql
+wp-content/uploads/*.sql
 wp-config.php
 wp-config-sample.php
 
-# Dependencies
-vendor/
-node_modules/
-
-# Logs and temp files
+# Logs and temp
 *.log
 *.tmp
 *.swp
+*~
 
 # Environment
 .env
@@ -23,14 +23,29 @@ node_modules/
 # Editors
 .vscode/
 .idea/
+*.sublime-*
+.project
+.settings/
 
-# OS generated files
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Build artifacts
-build/
-dist/
+/build/
+/dist/
 *.zip
 *.tar.gz
-```
+*.tar.bz2
+
+# Coverage
+/build/coverage/
+
+# Backup files
+*.bak
+*.backup
+
+# WPForge runtime
+wordpress/wpforge/logs/
+wordpress/wpforge/backups/

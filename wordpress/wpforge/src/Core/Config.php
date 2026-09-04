@@ -24,6 +24,15 @@ class Config
         'rate_limit_window' => 60,
         'backup_retention_days' => 7,
         'max_backup_size_mb' => 100,
+        // Security settings
+        'security' => [
+            'cors_origins' => [],
+            'allowed_ips' => [],
+            'blocked_ips' => [],
+            'public_status_enabled' => false,  // Disable public /status by default
+            'public_health_enabled' => false,  // Disable public /health by default
+            'redact_db_credentials' => true,    // Never expose DB credentials
+        ],
     ];
 
     private ?array $config = null;
@@ -40,6 +49,24 @@ class Config
         }
         
         return $default ?? ($this->defaults[$key] ?? null);
+    }
+    
+    /**
+     * Get nested configuration value using dot notation
+     */
+    public function getNested(string $key, mixed $default = null): mixed
+    {
+        $config = $this->all();
+        $keys = explode('.', $key);
+        
+        foreach ($keys as $segment) {
+            if (!is_array($config) || !array_key_exists($segment, $config)) {
+                return $default;
+            }
+            $config = $config[$segment];
+        }
+        
+        return $config;
     }
 
     /**
@@ -168,6 +195,40 @@ class Config
     {
         $root = $this->get('filesystem_root');
         return !empty($root) ? rtrim($root, '/') . '/' : ABSPATH;
+    }
+
+    /**
+     * Check if public status endpoint is enabled
+     * SECURITY: Returns false by default to prevent information disclosure
+     */
+    public function isPublicStatusEnabled(): bool
+    {
+        return (bool) ($this->get('security')['public_status_enabled'] ?? false);
+    }
+
+    /**
+     * Check if public health endpoint is enabled
+     * SECURITY: Returns false by default to prevent information disclosure
+     */
+    public function isPublicHealthEnabled(): bool
+    {
+        return (bool) ($this->get('security')['public_health_enabled'] ?? false);
+    }
+
+    /**
+     * Check if database credentials should be redacted from responses
+     */
+    public function shouldRedactDbCredentials(): bool
+    {
+        return (bool) ($this->get('security')['redact_db_credentials'] ?? true);
+    }
+
+    /**
+     * Get security configuration
+     */
+    public function getSecurityConfig(): array
+    {
+        return $this->get('security', []);
     }
 
     /**
