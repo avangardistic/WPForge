@@ -1,98 +1,78 @@
 <?php
+use WPForge\API\Response;
+use WPForge\WordPress\UserManager;
 
-namespace WPForge\API;
+$ns = WPFORGE_NAMESPACE;
+$um = new UserManager();
 
-use WP_REST_Request;
-use WP_REST_Response;
-
-/**
- * Users routes for WPForge API
- */
-class UsersRoutes extends BaseRoutes
-{
-    public static function register(): void
-    {
-        $instance = new self();
-
-        register_rest_route($instance->namespace, '/users', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getUsers'],
-            'permission_callback' => [$instance, 'checkPermission'],
-        ]);
-
-        register_rest_route($instance->namespace, '/users/(?P<id>\d+)', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getUser'],
-            'permission_callback' => [$instance, 'checkPermission'],
-        ]);
-
-        register_rest_route($instance->namespace, '/users/me', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getCurrentUser'],
-            'permission_callback' => [$instance, 'checkAuth'],
-        ]);
-    }
-
-    public function getUsers(WP_REST_Request $request): WP_REST_Response
-    {
-        $args = [
-            'number' => min((int) ($request->get_param('per_page') ?? 20), 100),
-            'paged' => (int) ($request->get_param('page') ?? 1),
-            'role' => $request->get_param('role') ?? '',
-        ];
-
-        $query = new \WP_User_Query($args);
-        $users = [];
-
-        foreach ($query->get_results() as $user) {
-            $users[] = $this->formatUser($user);
+register_rest_route($ns, '/users', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($um) {
+        if (!current_user_can('list_users')) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
-
-        return $this->successResponse([
-            'users' => $users,
-            'total' => $query->get_total(),
-            'page' => $args['paged'],
+        $perPage = (int) ($request->get_param('per_page') ?: 20);
+        $page = (int) ($request->get_param('page') ?: 1);
+        $result = $um->getUsers([
+            'number' => $perPage,
+            'offset' => ($page - 1) * $perPage,
         ]);
-    }
+        return Response::success($result);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-    public function getUser(WP_REST_Request $request): WP_REST_Response
-    {
-        $user_id = (int) $request->get_param('id');
-        $user = get_userdata($user_id);
+register_rest_route($ns, '/users/(?P<id>\d+)', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($um) {
+        $user = $um->getUser((int) $request['id']);
+        return $user ? Response::success($user) : Response::error('NOT_FOUND', 'User not found', 404);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        if (!$user) {
-            return $this->errorResponse('user_not_found', 'User not found.', 404);
+register_rest_route($ns, '/users', [
+    'methods'             => 'POST',
+    'callback'            => function ($request) use ($um) {
+        if (!current_user_can('create_users')) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
-
-        return $this->successResponse($this->formatUser($user));
-    }
-
-    public function getCurrentUser(): WP_REST_Response
-    {
-        $user = wp_get_current_user();
-        return $this->successResponse($this->formatUser($user));
-    }
-
-    private function formatUser(\WP_User $user): array
-    {
-        return [
-            'id' => $user->ID,
-            'username' => $user->user_login,
-            'name' => $user->display_name,
-            'email' => $user->user_email,
-            'roles' => $user->roles,
-            'capabilities' => array_keys(array_filter($user->allcaps)),
-            'registered' => $user->user_registered,
-            'url' => $user->user_url,
-        ];
-    }
-
-    public function checkPermission(): bool|WP_Error
-    {
-        $auth = $this->checkAuth();
-        if (is_wp_error($auth)) {
-            return $auth;
+        try {
+            $user = $um->createUser($request->get_json_params());
+            return Response::success($user, 201);
+        } catch (\Exception $e) {
+            return Response::error('CREATE_FAILED', $e->getMessage(), 500);
         }
-        return $this->checkCapability('list_users');
-    }
-}
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
+
+register_rest_route($ns, '/users/(?P<id>\d+)', [
+    'methods'             => 'PUT, PATCH',
+    'callback'            => function ($request) use ($um) {
+        if (!current_user_can('edit_user', (int) $request['id'])) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
+        }
+        try {
+            $user = $um->updateUser((int) $request['id'], $request->get_json_params());
+            return Response::success($user);
+        } catch (\Exception $e) {
+            return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
+        }
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
+
+register_rest_route($ns, '/users/(?P<id>\d+)', [
+    'methods'             => 'DELETE',
+    'callback'            => function ($request) use ($um) {
+        if (!current_user_can('delete_user', (int) $request['id'])) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
+        }
+        $result = $um->deleteUser((int) $request['id']);
+        return $result
+            ? Response::success(['deleted' => true, 'id' => (int) $request['id']])
+            : Response::error('DELETE_FAILED', 'Failed to delete user', 500);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);

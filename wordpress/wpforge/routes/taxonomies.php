@@ -1,143 +1,73 @@
 <?php
+use WPForge\API\Response;
+use WPForge\WordPress\TaxonomyManager;
 
-namespace WPForge\API;
+$ns = WPFORGE_NAMESPACE;
+$tm = new TaxonomyManager();
 
-use WP_REST_Request;
-use WP_REST_Response;
-
-/**
- * Taxonomies routes for WPForge API
- */
-class TaxonomiesRoutes extends BaseRoutes
-{
-    public static function register(): void
-    {
-        $instance = new self();
-
-        register_rest_route($instance->namespace, '/taxonomies', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getTaxonomies'],
-            'permission_callback' => [$instance, 'checkAuth'],
+register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($tm) {
+        $result = $tm->getTerms($request['taxonomy'], [
+            'per_page' => (int) ($request->get_param('per_page') ?: 100),
+            'offset'   => (int) ($request->get_param('offset') ?: 0),
         ]);
+        return Response::success($result);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        register_rest_route($instance->namespace, '/taxonomies/(?P<name>[a-zA-Z0-9_-]+)', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getTaxonomy'],
-            'permission_callback' => [$instance, 'checkAuth'],
-        ]);
+register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', [
+    'methods'             => 'GET',
+    'callback'            => function ($request) use ($tm) {
+        $term = $tm->getTerm($request['taxonomy'], (int) $request['id']);
+        return $term ? Response::success($term) : Response::error('NOT_FOUND', 'Term not found', 404);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        register_rest_route($instance->namespace, '/taxonomies/(?P<taxonomy>[a-zA-Z0-9_-]+)/terms', [
-            'methods' => 'GET',
-            'callback' => [$instance, 'getTerms'],
-            'permission_callback' => [$instance, 'checkAuth'],
-        ]);
-
-        register_rest_route($instance->namespace, '/taxonomies/(?P<taxonomy>[a-zA-Z0-9_-]+)/terms', [
-            'methods' => 'POST',
-            'callback' => [$instance, 'createTerm'],
-            'permission_callback' => [$instance, 'checkEditPermission'],
-        ]);
-    }
-
-    public function getTaxonomies(): WP_REST_Response
-    {
-        $taxonomies = get_taxonomies([], 'objects');
-        $result = [];
-
-        foreach ($taxonomies as $taxonomy) {
-            $result[] = [
-                'name' => $taxonomy->name,
-                'label' => $taxonomy->label,
-                'description' => $taxonomy->description,
-                'public' => $taxonomy->public,
-                'hierarchical' => $taxonomy->hierarchical,
-                'object_types' => $taxonomy->object_type,
-                'rest_base' => $taxonomy->rest_base ?? null,
-            ];
+register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms', [
+    'methods'             => 'POST',
+    'callback'            => function ($request) use ($tm) {
+        if (!current_user_can('manage_categories')) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
-
-        return $this->successResponse(['taxonomies' => $result]);
-    }
-
-    public function getTaxonomy(WP_REST_Request $request): WP_REST_Response
-    {
-        $taxonomy = get_taxonomy($request->get_param('name'));
-        
-        if (!$taxonomy) {
-            return $this->errorResponse('taxonomy_not_found', 'Taxonomy not found.', 404);
+        try {
+            $term = $tm->createTerm($request['taxonomy'], $request->get_json_params());
+            return Response::success($term, 201);
+        } catch (\Exception $e) {
+            return Response::error('CREATE_FAILED', $e->getMessage(), 500);
         }
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        return $this->successResponse([
-            'name' => $taxonomy->name,
-            'label' => $taxonomy->label,
-            'description' => $taxonomy->description,
-            'public' => $taxonomy->public,
-            'hierarchical' => $taxonomy->hierarchical,
-            'object_types' => $taxonomy->object_type,
-        ]);
-    }
-
-    public function getTerms(WP_REST_Request $request): WP_REST_Response
-    {
-        $taxonomy = sanitize_key($request->get_param('taxonomy'));
-        
-        $terms = get_terms([
-            'taxonomy' => $taxonomy,
-            'hide_empty' => false,
-        ]);
-
-        if (is_wp_error($terms)) {
-            return $this->errorResponse($terms->get_error_code(), $terms->get_error_message(), 400);
+register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', [
+    'methods'             => 'PUT, PATCH',
+    'callback'            => function ($request) use ($tm) {
+        if (!current_user_can('manage_categories')) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
-
-        $result = [];
-        foreach ($terms as $term) {
-            $result[] = [
-                'id' => $term->term_id,
-                'name' => $term->name,
-                'slug' => $term->slug,
-                'description' => $term->description,
-                'count' => $term->count,
-                'parent' => $term->parent,
-            ];
+        try {
+            $term = $tm->updateTerm($request['taxonomy'], (int) $request['id'], $request->get_json_params());
+            return Response::success($term);
+        } catch (\Exception $e) {
+            return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
         }
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);
 
-        return $this->successResponse(['terms' => $result]);
-    }
-
-    public function createTerm(WP_REST_Request $request): WP_REST_Response
-    {
-        $taxonomy = sanitize_key($request->get_param('taxonomy'));
-        $name = sanitize_text_field($request->get_param('name'));
-        $description = sanitize_textarea_field($request->get_param('description') ?? '');
-        $parent = (int) ($request->get_param('parent') ?? 0);
-
-        $result = wp_insert_term($name, $taxonomy, [
-            'description' => $description,
-            'parent' => $parent,
-        ]);
-
-        if (is_wp_error($result)) {
-            $this->logMutation('create_term', $taxonomy, false, 400, $result->get_error_code());
-            return $this->errorResponse($result->get_error_code(), $result->get_error_message(), 400);
+register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', [
+    'methods'             => 'DELETE',
+    'callback'            => function ($request) use ($tm) {
+        if (!current_user_can('manage_categories')) {
+            return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
-
-        $term = get_term($result['term_id'], $taxonomy);
-        
-        $this->logMutation('create_term', $taxonomy, true, 201);
-        return $this->successResponse([
-            'id' => $term->term_id,
-            'name' => $term->name,
-            'slug' => $term->slug,
-        ], 201);
-    }
-
-    public function checkEditPermission(): bool|WP_Error
-    {
-        $auth = $this->checkAuth();
-        if (is_wp_error($auth)) {
-            return $auth;
-        }
-        return $this->checkCapability('manage_categories');
-    }
-}
+        $result = $tm->deleteTerm($request['taxonomy'], (int) $request['id']);
+        return $result
+            ? Response::success(['deleted' => true, 'id' => (int) $request['id']])
+            : Response::error('DELETE_FAILED', 'Failed to delete term', 500);
+    },
+    'permission_callback' => 'is_user_logged_in',
+]);

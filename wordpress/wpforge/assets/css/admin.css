@@ -1,0 +1,255 @@
+/* ============================================================
+   WPForge Admin UI
+   ============================================================ */
+
+.wpforge-wrap {
+    max-width: 1080px;
+}
+
+/* Header ----------------------------------------------------- */
+.wpforge-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 12px 0 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.wpforge-header-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #2271b1, #135e96);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(19, 94, 150, 0.35);
+}
+
+.wpforge-header h1 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.3;
+}
+
+.wpforge-subtitle {
+    margin: 4px 0 0;
+    color: #646970;
+}
+
+/* Cards ------------------------------------------------------ */
+.wpforge-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.wpforge-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.wpforge-card h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    color: #1d2327;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.wpforge-card p {
+    margin: 0;
+    color: #3c434a;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.wpforge-card code {
+    word-break: break-all;
+}
+
+/* Badges ----------------------------------------------------- */
+.wpforge-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.8;
+    white-space: nowrap;
+}
+
+.wpforge-badge--green  { background: #d1e7dd; color: #0f5132; }
+.wpforge-badge--red    { background: #f8d7da; color: #842029; }
+.wpforge-badge--yellow { background: #fff3cd; color: #664d03; }
+.wpforge-badge--grey   { background: #e2e4e7; color: #50575e; }
+.wpforge-badge--blue   { background: #cfe2ff; color: #084298; }
+
+/* Strip / CTA ------------------------------------------------- */
+.wpforge-strip {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-left: 4px solid #2271b1;
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.wpforge-strip-cta {
+    margin-left: 12px;
+}
+
+/* Panels ------------------------------------------------------ */
+.wpforge-panel {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.wpforge-panel h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+}
+
+.wpforge-panel h3 {
+    margin: 0 0 8px;
+    font-size: 14px;
+}
+
+.wpforge-panel > p,
+.wpforge-box p {
+    color: #3c434a;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.wpforge-steps {
+    margin: 10px 0 0 18px;
+}
+
+.wpforge-steps li {
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.wpforge-box {
+    background: #f9fafb;
+    border: 1px solid #e0e4e8;
+    border-radius: 6px;
+    padding: 16px;
+    margin: 14px 0;
+}
+
+/* Code blocks ------------------------------------------------- */
+.wpforge-snippet {
+    margin: 14px 0;
+}
+
+.wpforge-snippet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #50575e;
+}
+
+.wpforge-code {
+    background: #1d2327;
+    color: #e8e8e8;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.wpforge-code-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.wpforge-code-row .wpforge-code {
+    flex: 1;
+    background: #fff;
+    color: #1d2327;
+    border: 1px dashed #8c8f94;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.wpforge-hint {
+    color: #646970;
+    font-size: 12px;
+    font-style: italic;
+    margin: 4px 0 0;
+}
+
+.wpforge-muted {
+    color: #646970;
+}
+
+/* Forms ------------------------------------------------------- */
+.wpforge-wrap label {
+    font-weight: 600;
+    font-size: 13px;
+    margin-right: 6px;
+}
+
+.wpforge-wrap input[type="text"],
+.wpforge-wrap input[type="password"] {
+    min-width: 260px;
+}
+
+.wpforge-wrap .wpforge-test-form,
+.wpforge-wrap form {
+    margin: 12px 0 4px;
+}
+
+/* Footer ------------------------------------------------------ */
+.wpforge-hr {
+    margin: 24px 0 8px;
+    border: none;
+    border-top: 1px solid #dcdcde;
+}
+
+.wpforge-footer {
+    color: #646970;
+    font-size: 12px;
+    margin: 0 0 24px;
+}
+
+.wpforge-footer code {
+    font-size: 12px;
+}
+
+/* Responsive -------------------------------------------------- */
+@media (max-width: 782px) {
+    .wpforge-cards { grid-template-columns: 1fr; }
+    .wpforge-wrap input[type="text"],
+    .wpforge-wrap input[type="password"] { min-width: 100%; }
+}

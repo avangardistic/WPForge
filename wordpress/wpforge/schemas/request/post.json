@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Post Request",
+    "type": "object",
+    "properties": {
+        "post_title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "post_content": { "type": "string" },
+        "post_status": { "type": "string", "enum": ["publish", "draft", "pending", "private"] },
+        "post_excerpt": { "type": "string" },
+        "post_type": { "type": "string" },
+        "taxonomies": { "type": "object" },
+        "meta": { "type": "object" }
+    },
+    "required": ["post_title"]
+}

@@ -1,0 +1,49 @@
+{
+    "name": "wpforge/wpforge",
+    "description": "AI-Powered WordPress Remote Control & Development Bridge",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "WPForge Team",
+            "email": "team@wpforge.dev"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-phpunit/wp-phpunit": "^6.0",
+        "yoast/phpunit-polyfills": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WPForge\\": "wordpress/wpforge/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WPForge\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite unit",
+        "test:integration": "phpunit --testsuite integration",
+        "test:security": "phpunit --testsuite security",
+        "lint": "phpcs",
+        "lint:fix": "phpcbf",
+        "build": "php tools/build/package.php",
+        "validate": "php tools/validate/validate-plugin.php"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpunit/phpunit": true,
+            "squizlabs/php_codesniffer": true
+        }
+    }
+}
