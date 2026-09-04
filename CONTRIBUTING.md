@@ -3,7 +3,7 @@
 ## Development Setup
 
 ```bash
-git clone https://github.com/wpforge/wpforge.git
+git clone https://github.com/avangardistic/WPForge.git
 cd wpforge
 composer install
 ```

@@ -5,7 +5,7 @@
 If you discover a security vulnerability, please report it responsibly:
 
 1. **Do NOT** open a public GitHub issue for security vulnerabilities
-2. Email: security@wpforge.dev (or use GitHub's private vulnerability reporting)
+2. Report via GitHub's private vulnerability reporting: https://github.com/avangardistic/WPForge/security/advisories
 3. Include: description, steps to reproduce, potential impact
 
 ## Supported Versions

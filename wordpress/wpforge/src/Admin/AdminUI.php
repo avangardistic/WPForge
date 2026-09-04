@@ -633,7 +633,7 @@ class AdminUI
     {
         echo '<hr class="wpforge-hr"><p class="wpforge-footer">WPForge v' . esc_html(defined('WPFORGE_VERSION') ? WPFORGE_VERSION : '')
            . ' &middot; REST API: <code>' . esc_html(rest_url('wpforge/v1')) . '</code>'
-           . ' &middot; <a href="https://github.com/wpforge/wpforge">Documentation</a></p>';
+           . ' &middot; <a href="https://github.com/avangardistic/WPForge">Documentation</a></p>';
         echo '</div>';
     }
 }

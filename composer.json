@@ -5,8 +5,8 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "WPForge Team",
-            "email": "team@wpforge.dev"
+            "name": "Hossein Parasteh",
+            "homepage": "https://github.com/avangardistic/WPForge"
         }
     ],
     "require": {
