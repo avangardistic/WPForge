@@ -62,8 +62,23 @@ final class WPForge_Plugin
     public function init(): void
     {
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
-        register_activation_hook(WPFORGE_PLUGIN_FILE, [$this, 'activate']);
-        register_deactivation_hook(WPFORGE_PLUGIN_FILE, [$this, 'deactivate']);
+        $this->maybeInstall();
+    }
+
+    /**
+     * Self-healing installer.
+     *
+     * Runs the idempotent activation routine on load whenever the schema marker
+     * is missing. This covers deployments where the plugin was uploaded/copied
+     * or activated without its activation hook running (e.g. hosting panels), so
+     * tables, directories, and options are still created on the next request.
+     */
+    public function maybeInstall(): void
+    {
+        if (get_option('wpforge_version') === WPFORGE_VERSION) {
+            return;
+        }
+        $this->activate();
     }
 
     public function registerRestRoutes(): void
@@ -140,3 +155,11 @@ final class WPForge_Plugin
 }
 
 add_action('plugins_loaded', 'wpforge_bootstrap');
+
+// Register activation/deactivation hooks at file scope. During plugin
+// activation/deactivation the plugin file is included AFTER 'plugins_loaded'
+// has fired, so hooks registered inside a plugins_loaded callback (init())
+// would be registered too late and never run.
+$wpforge_plugin = WPForge_Plugin::instance();
+register_activation_hook(WPFORGE_PLUGIN_FILE, [$wpforge_plugin, 'activate']);
+register_deactivation_hook(WPFORGE_PLUGIN_FILE, [$wpforge_plugin, 'deactivate']);
