@@ -28,7 +28,20 @@ Features:
 
 1. Upload the `wpforge` folder to `/wp-content/plugins/`
 2. Activate the plugin through the 'Plugins' menu
-3. Test: GET `/wp-json/wpforge/v1/status`
+3. Access the UI: Go to **WPForge** in the left sidebar of wp-admin (gear icon)
+   - **Dashboard**: View API status, plugin info, developer mode toggle
+   - **Connect to AI**: Generate credentials, configure MCP clients, test connections
+4. Test API: GET `/wp-json/wpforge/v1/status`
+
+== Frequently Asked Questions ==
+
+= Where do I find the WPForge UI? =
+
+After activating the plugin, look for the **WPForge** menu item in your WordPress admin sidebar (under the gear icon). Only users with Administrator capabilities (`manage_options`) can access it.
+
+The menu has two pages:
+1. **Dashboard** - Shows plugin version, REST API status, developer mode status, and active credentials count
+2. **Connect to AI** - Generate Application Passwords or API tokens, copy MCP client configurations (Claude Desktop, Cursor, CLI), and test your connection
 
 == Changelog ==
 
