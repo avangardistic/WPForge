@@ -1,9 +1,11 @@
 <?php
 /**
  * Plugin Name: WPForge
- * Plugin URI: https://github.com/wpforge/wpforge
+ * Plugin URI: https://github.com/avangardistic/WPForge
  * Description: AI-Powered WordPress Remote Control & Development Bridge
  * Version: 1.0.0
+ * Author: Hossein Parasteh
+ * Author URI: https://github.com/avangardistic
  * Requires PHP: 8.1
  * Requires WP: 6.0
  * Text Domain: wpforge

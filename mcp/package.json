@@ -2,6 +2,16 @@
     "name": "@wpforge/mcp-server",
     "version": "1.0.0",
     "description": "MCP server for WPForge WordPress Remote Control",
+    "author": {
+        "name": "Hossein Parasteh",
+        "url": "https://github.com/avangardistic/WPForge"
+    },
+    "license": "MIT",
+    "homepage": "https://github.com/avangardistic/WPForge",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/avangardistic/WPForge.git"
+    },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
