@@ -1,0 +1,36 @@
+```
+# WordPress specific
+wp-content/cache/
+wp-content/uploads/
+*.sql
+wp-config.php
+wp-config-sample.php
+
+# Dependencies
+vendor/
+node_modules/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+build/
+dist/
+*.zip
+*.tar.gz
+```
