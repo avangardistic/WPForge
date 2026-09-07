@@ -78,20 +78,34 @@ Authentication is not the same as authorization. `permission_callback` establish
 *who you are*; a `current_user_can()` check inside the handler decides *what you
 may do*:
 
-| Action | Capability |
-|--------|-----------|
-| File write / delete | `edit_files` |
-| Elementor document update | `edit_pages` |
-| Backup create / delete | `manage_options` |
-| Token creation | `edit_users` |
-| Plugin activation | `activate_plugins` |
-| Theme activation | `switch_themes` |
+Every endpoint is gated at the permission layer by a capability, not merely by
+being logged in. An under-privileged user receives a `403` before the handler
+runs; an anonymous request receives a `401`.
+
+| Endpoint group | Capability |
+|----------------|-----------|
+| `/files/*`, `/database/*`, `/site/*`, `/environment`, `/diagnostics`, `/logs/*`, `/backup/*` | `manage_options` |
+| `/plugins/*` | `activate_plugins` |
+| `/themes/*` | `switch_themes` |
+| `/menus/*` | `edit_theme_options` |
+| `/media/*` | `upload_files` |
+| `/users/*` (read) | `list_users` |
+| `/users/*` (write) | `edit_users` / `create_users` |
+| `/taxonomies/*` | `manage_categories` |
+| `/elementor/*` | `edit_pages` |
+| `/posts/*` | `edit_posts` (writes add `publish_posts` / per-object `edit_post`) |
+| `/pages/*` | `edit_pages` (writes add `publish_pages` / per-object `edit_post`) |
+| `/files/write`, `/files/delete` | `manage_options` **and** `edit_files` |
+| `/tokens/*` | authenticated; creating a token needs `edit_users` |
+
+`/capabilities` and `/` require only authentication (the former reports the
+current user's own capabilities).
 
 ## Unauthenticated access
 
-Only `GET /diagnostics/quick` responds without credentials by default. It returns
-five booleans and discloses no version, path or hostname, so an uptime monitor can
-use it safely.
+Only `GET /diagnostics/quick` responds without credentials. It returns five
+booleans and discloses no version, path or hostname, so an uptime monitor can use
+it safely. `GET /` (discovery) now requires authentication.
 
 `GET /status` and `GET /health` **require authentication** unless you explicitly
 opt in with `security.public_status_enabled` / `security.public_health_enabled`.

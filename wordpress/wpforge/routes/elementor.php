@@ -14,7 +14,7 @@ $tplManager = new TemplateManager();
 register_rest_route($ns, '/elementor/status', [
     'methods'             => 'GET',
     'callback'            => fn($request) => Response::success($adapter->getCapabilities()),
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/elementor/documents', [
@@ -31,7 +31,7 @@ register_rest_route($ns, '/elementor/documents', [
         ]);
         return Response::paginated($result['documents'], $result['total'], $result['page'], $result['per_page']);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/elementor/documents/(?P<id>\d+)', [
@@ -40,7 +40,7 @@ register_rest_route($ns, '/elementor/documents/(?P<id>\d+)', [
         $doc = $docManager->getDocument((int) $request['id']);
         return $doc ? Response::success($doc) : Response::error('NOT_FOUND', 'Document not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/elementor/documents/(?P<id>\d+)', [
@@ -60,7 +60,7 @@ register_rest_route($ns, '/elementor/documents/(?P<id>\d+)', [
             return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/elementor/templates', [
@@ -73,7 +73,7 @@ register_rest_route($ns, '/elementor/templates', [
         ]);
         return Response::paginated($result['templates'], $result['total'], $result['page'], $result['per_page']);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/elementor/templates/(?P<id>\d+)', [
@@ -82,5 +82,5 @@ register_rest_route($ns, '/elementor/templates/(?P<id>\d+)', [
         $tpl = $tplManager->getTemplate((int) $request['id']);
         return $tpl ? Response::success($tpl) : Response::error('NOT_FOUND', 'Template not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);

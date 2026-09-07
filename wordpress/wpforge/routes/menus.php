@@ -11,7 +11,7 @@ register_rest_route($ns, '/menus', [
     'callback'            => function ($request) use ($mm) {
         return Response::success($mm->getMenus());
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_theme_options'),
 ]);
 
 register_rest_route($ns, '/menus/(?P<id>\d+)', [
@@ -20,7 +20,7 @@ register_rest_route($ns, '/menus/(?P<id>\d+)', [
         $menu = $mm->getMenu((int) $request['id']);
         return $menu ? Response::success($menu) : Response::error('NOT_FOUND', 'Menu not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_theme_options'),
 ]);
 
 register_rest_route($ns, '/menus/locations', [
@@ -28,5 +28,5 @@ register_rest_route($ns, '/menus/locations', [
     'callback'            => function ($request) use ($mm) {
         return Response::success($mm->getLocations());
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_theme_options'),
 ]);

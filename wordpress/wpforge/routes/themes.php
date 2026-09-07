@@ -11,7 +11,7 @@ register_rest_route($ns, '/themes', [
     'callback'            => function ($request) use ($tm) {
         return Response::success($tm->getThemes());
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('switch_themes'),
 ]);
 
 register_rest_route($ns, '/themes/(?P<stylesheet>[a-zA-Z0-9_-]+)', [
@@ -20,7 +20,7 @@ register_rest_route($ns, '/themes/(?P<stylesheet>[a-zA-Z0-9_-]+)', [
         $theme = $tm->getTheme($request['stylesheet']);
         return $theme ? Response::success($theme) : Response::error('NOT_FOUND', 'Theme not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('switch_themes'),
 ]);
 
 register_rest_route($ns, '/themes/activate', [
@@ -40,5 +40,5 @@ register_rest_route($ns, '/themes/activate', [
             return Response::error('ACTIVATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('switch_themes'),
 ]);

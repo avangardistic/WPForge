@@ -23,8 +23,12 @@ WordPress check against that user's role.
 
 ## Authorization
 
-`permission_callback` gates authentication; a `current_user_can()` call inside the
-handler gates the action:
+Authorization is enforced at the permission layer by `WPForge\API\Permissions`,
+which returns a `401` for an anonymous request and a `403` for an authenticated
+but under-privileged one — before any handler runs. Reads are gated too, not only
+mutations: `/files/*`, `/database/*`, `/site/*`, `/logs/*`, `/backup/*`,
+`/environment` and `/diagnostics` require `manage_options`. Handlers keep their own
+per-object `current_user_can()` checks as defence in depth:
 
 | Action | Capability |
 |--------|-----------|
@@ -40,7 +44,7 @@ filesystem work.
 
 ## Endpoints reachable without authentication
 
-Only one, by default: `GET /diagnostics/quick`, which returns five booleans
+Only one: `GET /diagnostics/quick`, which returns five booleans
 (`wordpress`, `rest_api`, `database`, `filesystem`, `memory`) and no version,
 path, or hostname. It exists so an uptime monitor can probe the site.
 

@@ -20,7 +20,7 @@ register_rest_route($ns, '/files/list', [
             return Response::error('LIST_FAILED', $e->getMessage(), 400);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/files/read', [
@@ -36,7 +36,7 @@ register_rest_route($ns, '/files/read', [
             return Response::error('READ_FAILED', $e->getMessage(), 400);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/files/write', [
@@ -66,7 +66,7 @@ register_rest_route($ns, '/files/write', [
             return Response::error('WRITE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/files/delete', [
@@ -85,5 +85,5 @@ register_rest_route($ns, '/files/delete', [
             return Response::error('DELETE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);

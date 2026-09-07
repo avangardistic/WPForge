@@ -38,6 +38,8 @@ class SecurityGuard
      */
     public function validatePath(string $path): string
     {
+        $this->assertSafeInput($path);
+
         $normalized = $this->normalizePath($path);
 
         // Match against a leading-slash form. The patterns are written to anchor
@@ -54,8 +56,10 @@ class SecurityGuard
 
         $fullPath = $this->root . ltrim($normalized, '/');
         $realPath = realpath($fullPath) ?: $fullPath;
+        $realPath = str_replace(chr(92), '/', $realPath);
 
-        if (strpos($realPath, $this->root) !== 0) {
+        $rootNoSlash = rtrim($this->root, '/');
+        if ($realPath !== $rootNoSlash && strpos($realPath, $rootNoSlash . '/') !== 0) {
             throw new \RuntimeException('Path is outside allowed root: ' . $path);
         }
 
@@ -73,6 +77,37 @@ class SecurityGuard
         }
 
         return $realPath;
+    }
+
+
+    /**
+     * Reject input that is never legitimate in a sandbox-relative path, before
+     * any normalisation runs.
+     *
+     * @throws \RuntimeException if the input is unsafe.
+     */
+    private function assertSafeInput(string $path): void
+    {
+        if ($path === '') {
+            throw new \RuntimeException('Empty path.');
+        }
+
+        // A null byte or other control character can truncate the string
+        // before a downstream check and never belongs in a real path.
+        if (strpos($path, chr(0)) !== false || preg_match('/[[:cntrl:]]/', $path)) {
+            throw new \RuntimeException('Path contains control characters.');
+        }
+
+        // A UNC or authority-style prefix ("\\server\share" or "//host").
+        if (strncmp(str_replace(chr(92), '/', $path), '//', 2) === 0) {
+            throw new \RuntimeException('Path uses a UNC or network prefix.');
+        }
+
+        // A colon means a Windows drive letter, an alternate data stream, or
+        // a stream name. None are valid in a path relative to the root.
+        if (strpos($path, ':') !== false) {
+            throw new \RuntimeException('Path contains a drive or stream separator.');
+        }
     }
 
     /**

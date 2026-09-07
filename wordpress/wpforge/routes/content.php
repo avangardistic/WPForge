@@ -22,7 +22,7 @@ register_rest_route($ns, '/posts', [
         $result = $pm->getPosts('post', $args);
         return Response::paginated($result['posts'], $result['total'], $result['page'], $result['per_page']);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_posts'),
 ]);
 
 register_rest_route($ns, '/posts/(?P<id>\d+)', [
@@ -31,7 +31,7 @@ register_rest_route($ns, '/posts/(?P<id>\d+)', [
         $post = $pm->getPost((int) $request['id']);
         return $post ? Response::success($post) : Response::error('NOT_FOUND', 'Post not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_posts'),
 ]);
 
 register_rest_route($ns, '/posts', [
@@ -48,7 +48,7 @@ register_rest_route($ns, '/posts', [
             return Response::error('CREATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_posts'),
 ]);
 
 register_rest_route($ns, '/posts/(?P<id>\d+)', [
@@ -65,7 +65,7 @@ register_rest_route($ns, '/posts/(?P<id>\d+)', [
             return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_posts'),
 ]);
 
 register_rest_route($ns, '/posts/(?P<id>\d+)', [
@@ -81,7 +81,7 @@ register_rest_route($ns, '/posts/(?P<id>\d+)', [
             ? Response::success(['deleted' => true, 'id' => $id])
             : Response::error('DELETE_FAILED', 'Failed to delete post', 500);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_posts'),
 ]);
 
 // --- PAGES ---
@@ -100,7 +100,7 @@ register_rest_route($ns, '/pages', [
         $result = $pm->getPosts('page', $args);
         return Response::paginated($result['posts'], $result['total'], $result['page'], $result['per_page']);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/pages/(?P<id>\d+)', [
@@ -109,7 +109,7 @@ register_rest_route($ns, '/pages/(?P<id>\d+)', [
         $post = $pm->getPost((int) $request['id']);
         return $post ? Response::success($post) : Response::error('NOT_FOUND', 'Page not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/pages', [
@@ -127,7 +127,7 @@ register_rest_route($ns, '/pages', [
             return Response::error('CREATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);
 
 register_rest_route($ns, '/pages/(?P<id>\d+)', [
@@ -144,5 +144,5 @@ register_rest_route($ns, '/pages/(?P<id>\d+)', [
             return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('edit_pages'),
 ]);

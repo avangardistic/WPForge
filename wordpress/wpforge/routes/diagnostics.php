@@ -11,7 +11,7 @@ register_rest_route($ns, '/diagnostics', [
     'callback'            => function ($request) use ($reporter) {
         return Response::success($reporter->getFullReport());
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/diagnostics/quick', [

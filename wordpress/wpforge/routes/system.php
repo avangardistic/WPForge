@@ -55,7 +55,7 @@ register_rest_route($ns, '/capabilities', [
             'capabilities' => $capabilities,
         ]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::authenticated(),
 ]);
 
 register_rest_route($ns, '/environment', [
@@ -91,7 +91,7 @@ register_rest_route($ns, '/environment', [
             ],
         ]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/health', [
@@ -150,5 +150,5 @@ register_rest_route($ns, '/', [
             ],
         ]);
     },
-    'permission_callback' => '__return_true',
+    'permission_callback' => \WPForge\API\Permissions::authenticated(),
 ]);

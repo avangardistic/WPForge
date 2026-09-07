@@ -22,7 +22,7 @@ register_rest_route($ns, '/media', [
         $result = $media->getMedia($args);
         return Response::paginated($result['media'], $result['total'], $result['page'], $result['per_page']);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('upload_files'),
 ]);
 
 register_rest_route($ns, '/media/(?P<id>\d+)', [
@@ -31,7 +31,7 @@ register_rest_route($ns, '/media/(?P<id>\d+)', [
         $item = $media->getMediaItem((int) $request['id']);
         return $item ? Response::success($item) : Response::error('NOT_FOUND', 'Media not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('upload_files'),
 ]);
 
 register_rest_route($ns, '/media/upload', [
@@ -53,7 +53,7 @@ register_rest_route($ns, '/media/upload', [
             return Response::error('UPLOAD_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('upload_files'),
 ]);
 
 register_rest_route($ns, '/media/(?P<id>\d+)', [
@@ -68,5 +68,5 @@ register_rest_route($ns, '/media/(?P<id>\d+)', [
             ? Response::success(['deleted' => true, 'id' => (int) $request['id']])
             : Response::error('DELETE_FAILED', 'Failed to delete media', 500);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('upload_files'),
 ]);

@@ -20,7 +20,7 @@ register_rest_route($ns, '/database/status', [
 
         return Response::success($status);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/database/tables', [
@@ -29,7 +29,7 @@ register_rest_route($ns, '/database/tables', [
         $tables = $dbInspector->listTables();
         return Response::success(['tables' => $tables, 'count' => count($tables)]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/database/tables/(?P<name>[a-zA-Z0-9_]+)', [
@@ -42,7 +42,7 @@ register_rest_route($ns, '/database/tables/(?P<name>[a-zA-Z0-9_]+)', [
             return Response::error('DESCRIBE_FAILED', $e->getMessage(), 400);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/database/query', [
@@ -65,5 +65,5 @@ register_rest_route($ns, '/database/query', [
             return Response::error('QUERY_FAILED', $e->getMessage(), 400);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);

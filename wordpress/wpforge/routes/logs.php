@@ -24,7 +24,7 @@ register_rest_route($ns, '/logs', [
         }
         return Response::success($logger->getLogs($args));
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
 
 register_rest_route($ns, '/logs/clear', [
@@ -36,5 +36,5 @@ register_rest_route($ns, '/logs/clear', [
         $logger->clearAll();
         return Response::success(['cleared' => true]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);

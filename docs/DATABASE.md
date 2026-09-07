@@ -1,6 +1,7 @@
 # Database Access
 
-Read-only by default. Four endpoints.
+Read-only by default. Four endpoints, all requiring the `manage_options`
+capability.
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|

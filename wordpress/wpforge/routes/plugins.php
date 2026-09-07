@@ -11,7 +11,7 @@ register_rest_route($ns, '/plugins', [
     'callback'            => function ($request) use ($pm) {
         return Response::success($pm->getPlugins());
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('activate_plugins'),
 ]);
 
 register_rest_route($ns, '/plugins/activate', [
@@ -31,7 +31,7 @@ register_rest_route($ns, '/plugins/activate', [
             return Response::error('ACTIVATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('activate_plugins'),
 ]);
 
 register_rest_route($ns, '/plugins/deactivate', [
@@ -47,5 +47,5 @@ register_rest_route($ns, '/plugins/deactivate', [
         $pm->deactivatePlugin($plugin);
         return Response::success(['deactivated' => true]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('activate_plugins'),
 ]);

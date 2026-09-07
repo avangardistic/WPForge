@@ -20,7 +20,7 @@ register_rest_route($ns, '/users', [
         ]);
         return Response::success($result);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('list_users'),
 ]);
 
 register_rest_route($ns, '/users/(?P<id>\d+)', [
@@ -29,7 +29,7 @@ register_rest_route($ns, '/users/(?P<id>\d+)', [
         $user = $um->getUser((int) $request['id']);
         return $user ? Response::success($user) : Response::error('NOT_FOUND', 'User not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('list_users'),
 ]);
 
 register_rest_route($ns, '/users', [
@@ -45,7 +45,7 @@ register_rest_route($ns, '/users', [
             return Response::error('CREATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('list_users'),
 ]);
 
 register_rest_route($ns, '/users/(?P<id>\d+)', [
@@ -61,7 +61,7 @@ register_rest_route($ns, '/users/(?P<id>\d+)', [
             return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('list_users'),
 ]);
 
 register_rest_route($ns, '/users/(?P<id>\d+)', [
@@ -75,5 +75,5 @@ register_rest_route($ns, '/users/(?P<id>\d+)', [
             ? Response::success(['deleted' => true, 'id' => (int) $request['id']])
             : Response::error('DELETE_FAILED', 'Failed to delete user', 500);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('list_users'),
 ]);

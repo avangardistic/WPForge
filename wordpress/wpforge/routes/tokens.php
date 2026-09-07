@@ -16,7 +16,7 @@ register_rest_route($ns, '/tokens', [
         $tokens = $tokenManager->listTokens((int) $user->ID);
         return Response::success(['tokens' => $tokens, 'count' => count($tokens)]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::authenticated(),
 ]);
 
 register_rest_route($ns, '/tokens', [
@@ -45,7 +45,7 @@ register_rest_route($ns, '/tokens', [
             return Response::error('TOKEN_CREATION_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::authenticated(),
 ]);
 
 register_rest_route($ns, '/tokens/(?P<id>\w+)', [
@@ -78,5 +78,5 @@ register_rest_route($ns, '/tokens/(?P<id>\w+)', [
 
         return Response::success(['success' => true, 'revoked' => true, 'token_id' => $tokenId]);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::authenticated(),
 ]);

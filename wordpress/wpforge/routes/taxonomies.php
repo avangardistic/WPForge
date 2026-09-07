@@ -15,7 +15,7 @@ register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms', [
         ]);
         return Response::success($result);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_categories'),
 ]);
 
 register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', [
@@ -24,7 +24,7 @@ register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', 
         $term = $tm->getTerm($request['taxonomy'], (int) $request['id']);
         return $term ? Response::success($term) : Response::error('NOT_FOUND', 'Term not found', 404);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_categories'),
 ]);
 
 register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms', [
@@ -40,7 +40,7 @@ register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms', [
             return Response::error('CREATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_categories'),
 ]);
 
 register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', [
@@ -56,7 +56,7 @@ register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', 
             return Response::error('UPDATE_FAILED', $e->getMessage(), 500);
         }
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_categories'),
 ]);
 
 register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', [
@@ -70,5 +70,5 @@ register_rest_route($ns, '/taxonomies/(?P<taxonomy>[a-z_]+)/terms/(?P<id>\d+)', 
             ? Response::success(['deleted' => true, 'id' => (int) $request['id']])
             : Response::error('DELETE_FAILED', 'Failed to delete term', 500);
     },
-    'permission_callback' => 'is_user_logged_in',
+    'permission_callback' => \WPForge\API\Permissions::can('manage_categories'),
 ]);

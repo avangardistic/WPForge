@@ -10,8 +10,13 @@ path validator.
 | `/files/write`  | POST   | `edit_files` + `developer_mode` + `allow_filesystem_writes` |
 | `/files/delete` | DELETE | `edit_files` + `allow_destructive_operations` |
 
+All four endpoints require the `manage_options` capability — reading arbitrary
+files is an administrator-level operation — and writes and deletes additionally
+require `edit_files` and their config flags.
+
 Paths are always **relative to the configured root** (`filesystem_root`, default
-`ABSPATH`). Absolute paths and anything that escapes the root are refused.
+`ABSPATH`). Absolute paths, drive letters, UNC prefixes, control characters and
+anything that escapes the root are refused.
 
 ## List a directory
 

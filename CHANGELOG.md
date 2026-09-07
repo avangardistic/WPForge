@@ -7,6 +7,27 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Security
+- **Read endpoints no longer authorise on login alone.** Every REST route
+  registered a `permission_callback` of `is_user_logged_in`, so any
+  authenticated user of any role — a Subscriber — could read files under the
+  sandbox root, run SELECT queries, list users, and read site internals; only
+  mutating handlers checked a capability. A new `WPForge\API\Permissions`
+  factory now gates each route at the permission layer with an appropriate
+  capability (`manage_options` for files/database/site/logs/backups,
+  `activate_plugins`, `switch_themes`, `list_users`, `upload_files`,
+  `edit_posts`/`edit_pages`, etc.), returning a real 401 (unauthenticated) or
+  403 (under-privileged) before the handler runs. Per-object handler checks are
+  retained as defence in depth. The `/` discovery endpoint, previously public,
+  now requires authentication; `/diagnostics/quick` remains the only
+  intentionally public route.
+- **Filesystem guards hardened further.** Both `Filesystem\SecurityGuard` (used
+  by the routes) and `Security\PathValidator` now reject null bytes and other
+  control characters, Windows drive letters and alternate-data-stream names
+  (any `:`), and UNC / authority prefixes (`\server\share`, `//host`), and
+  the containment check is separator-aware so a sibling directory sharing the
+  root's name prefix can no longer masquerade as being inside it. Symlink
+  escapes were already caught by `realpath()` containment. Every vector is
+  covered by `PathTraversalTest`.
 - **`wp-config.php` was readable through `GET /files/read`.** The deny rules
   (`/\/wp-config\.php$/`, `/\/\.htaccess$/`, `/^\/etc\//` and the rest) are
   written to anchor on a separator, but `normalizePath()` strips the leading
