@@ -9,7 +9,24 @@ class Config
 {
     private const OPTION_NAME = 'wpforge_config';
     
-    private array $defaults = [
+    private array $defaults;
+
+    private ?array $config = null;
+
+    public function __construct()
+    {
+        $file = defined('WPFORGE_PLUGIN_DIR')
+            ? WPFORGE_PLUGIN_DIR . 'config/defaults.php'
+            : dirname(__DIR__, 2) . '/config/defaults.php';
+
+        $this->defaults = is_readable($file) ? (array) require $file : self::FALLBACK_DEFAULTS;
+    }
+
+    /**
+     * Used only if config/defaults.php is missing (e.g. a partial install).
+     * Keep in sync with that file.
+     */
+    private const FALLBACK_DEFAULTS = [
         'enabled' => true,
         'developer_mode' => false,
         'filesystem_root' => '',
@@ -34,8 +51,6 @@ class Config
             'redact_db_credentials' => true,    // Never expose DB credentials
         ],
     ];
-
-    private ?array $config = null;
 
     /**
      * Get configuration value

@@ -9,7 +9,7 @@ class Validator
     /**
      * Validate an Elementor data structure.
      */
-    public static function validateData(array $data): \WP_Error|true
+    public static function validateData(array $data): \WP_Error|bool
     {
         $errors = new \WP_Error();
 
@@ -36,7 +36,7 @@ class Validator
     /**
      * Validate a single Elementor section.
      */
-    public static function validateSection(array $section, string $path = 'root'): \WP_Error|true
+    public static function validateSection(array $section, string $path = 'root'): \WP_Error|bool
     {
         $errors = new \WP_Error();
 
@@ -66,7 +66,7 @@ class Validator
     /**
      * Validate an Elementor document ID.
      */
-    public static function validateDocumentId(int $id): \WP_Error|true
+    public static function validateDocumentId(int $id): \WP_Error|bool
     {
         if ($id <= 0) {
             return new \WP_Error('invalid_id', 'Document ID must be a positive integer.');
@@ -88,7 +88,7 @@ class Validator
     /**
      * Validate a template type string.
      */
-    public static function validateTemplateType(string $type): \WP_Error|true
+    public static function validateTemplateType(string $type): \WP_Error|bool
     {
         $valid = ['page', 'section', 'header', 'footer', 'single', 'archive', 'error_404', 'search'];
         if (!in_array($type, $valid, true)) {

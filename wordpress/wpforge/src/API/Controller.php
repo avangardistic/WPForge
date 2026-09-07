@@ -43,7 +43,7 @@ class Controller
     /**
      * Require authentication; return WP_Error on failure.
      */
-    protected function requireAuth(): true|\WP_Error
+    protected function requireAuth(): bool|\WP_Error
     {
         if (!is_user_logged_in()) {
             return new \WP_Error('wpforge_unauthorized', 'Authentication required.', ['status' => 401]);
@@ -54,7 +54,7 @@ class Controller
     /**
      * Require a specific capability; return WP_Error on failure.
      */
-    protected function requireCapability(string $cap): true|\WP_Error
+    protected function requireCapability(string $cap): bool|\WP_Error
     {
         $auth = $this->requireAuth();
         if ($auth instanceof \WP_Error) {

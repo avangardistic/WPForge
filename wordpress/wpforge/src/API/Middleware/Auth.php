@@ -18,7 +18,7 @@ class Auth
     /**
      * Middleware callable compatible with Router::addMiddleware().
      */
-    public function __invoke(\WP_REST_Request $request): true|\WP_Error|\WP_REST_Response
+    public function __invoke(\WP_REST_Request $request): bool|\WP_Error|\WP_REST_Response
     {
         $user = $this->authenticator->authenticate($request);
 

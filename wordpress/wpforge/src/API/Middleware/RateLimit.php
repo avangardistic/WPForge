@@ -18,7 +18,7 @@ class RateLimit
     /**
      * Middleware callable.
      */
-    public function __invoke(\WP_REST_Request $request): true|\WP_Error
+    public function __invoke(\WP_REST_Request $request): bool|\WP_Error
     {
         if (!$this->config->rateLimitEnabled()) {
             return true;

@@ -25,7 +25,7 @@ register_rest_route($ns, '/status', [
     },
     'permission_callback' => function() {
         $config = new Config();
-        return $config->isPublicStatusEnabled() ? true : 'is_user_logged_in';
+        return $config->isPublicStatusEnabled() ? true : is_user_logged_in();
     },
 ]);
 
@@ -114,7 +114,7 @@ register_rest_route($ns, '/health', [
     },
     'permission_callback' => function() {
         $config = new Config();
-        return $config->isPublicHealthEnabled() ? true : 'is_user_logged_in';
+        return $config->isPublicHealthEnabled() ? true : is_user_logged_in();
     },
 ]);
 

@@ -25,7 +25,7 @@ class NonceManager
     /**
      * Check nonce and return a \WP_Error on failure.
      */
-    public static function check(string $nonce, string $action): true|\WP_Error
+    public static function check(string $nonce, string $action): bool|\WP_Error
     {
         if (!self::verify($nonce, $action)) {
             return new \WP_Error('invalid_nonce', 'The security nonce is invalid or has expired.');

@@ -9,7 +9,7 @@ class Validator
     /**
      * Validate that a required parameter is present.
      */
-    public static function required(mixed $value, string $name): true|\WP_Error
+    public static function required(mixed $value, string $name): bool|\WP_Error
     {
         if ($value === null || $value === '') {
             return new \WP_Error('missing_field', sprintf('"%s" is required.', $name));
@@ -20,7 +20,7 @@ class Validator
     /**
      * Validate that a value is a valid integer within a range.
      */
-    public static function integer(mixed $value, string $name, int $min = PHP_INT_MIN, int $max = PHP_INT_MAX): true|\WP_Error
+    public static function integer(mixed $value, string $name, int $min = PHP_INT_MIN, int $max = PHP_INT_MAX): bool|\WP_Error
     {
         if ($value === null || $value === '') {
             return true; // optional
@@ -35,7 +35,7 @@ class Validator
     /**
      * Validate that a value is a valid email.
      */
-    public static function email(mixed $value, string $name): true|\WP_Error
+    public static function email(mixed $value, string $name): bool|\WP_Error
     {
         if ($value === null || $value === '') {
             return true;
@@ -49,7 +49,7 @@ class Validator
     /**
      * Validate that a value is one of the allowed values.
      */
-    public static function oneOf(mixed $value, string $name, array $allowed): true|\WP_Error
+    public static function oneOf(mixed $value, string $name, array $allowed): bool|\WP_Error
     {
         if ($value === null || $value === '') {
             return true;
@@ -66,7 +66,7 @@ class Validator
     /**
      * Validate a string length.
      */
-    public static function maxLength(string $value, string $name, int $max): true|\WP_Error
+    public static function maxLength(string $value, string $name, int $max): bool|\WP_Error
     {
         if (mb_strlen($value) > $max) {
             return new \WP_Error('invalid_value', sprintf('"%s" must be at most %d characters.', $name, $max));
@@ -77,7 +77,7 @@ class Validator
     /**
      * Validate that a string matches a regex pattern.
      */
-    public static function pattern(string $value, string $name, string $pattern, string $patternDescription = ''): true|\WP_Error
+    public static function pattern(string $value, string $name, string $pattern, string $patternDescription = ''): bool|\WP_Error
     {
         if (!preg_match($pattern, $value)) {
             $desc = $patternDescription ?: $pattern;
@@ -89,7 +89,7 @@ class Validator
     /**
      * Validate that a value is a boolean (or 0/1).
      */
-    public static function boolean(mixed $value, string $name): true|\WP_Error
+    public static function boolean(mixed $value, string $name): bool|\WP_Error
     {
         if ($value === null) {
             return true;
@@ -104,7 +104,7 @@ class Validator
     /**
      * Validate an array of values.
      */
-    public static function array(mixed $value, string $name): true|\WP_Error
+    public static function array(mixed $value, string $name): bool|\WP_Error
     {
         if ($value === null) {
             return true;
@@ -118,7 +118,7 @@ class Validator
     /**
      * Validate a nonce token.
      */
-    public static function nonce(string $nonce, string $action): true|\WP_Error
+    public static function nonce(string $nonce, string $action): bool|\WP_Error
     {
         if (!wp_verify_nonce($nonce, $action)) {
             return new \WP_Error('invalid_nonce', 'Invalid security token.');
@@ -133,7 +133,7 @@ class Validator
      * @param array<string, callable> $rules Field name => validator callable pairs.
      * @return \WP_Error|true
      */
-    public static function validate(array $fields, array $rules): true|\WP_Error
+    public static function validate(array $fields, array $rules): bool|\WP_Error
     {
         $errors = new \WP_Error();
 

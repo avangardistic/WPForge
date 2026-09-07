@@ -18,7 +18,7 @@ class Logging
     /**
      * Middleware callable.
      */
-    public function __invoke(\WP_REST_Request $request): true
+    public function __invoke(\WP_REST_Request $request): bool
     {
         // Record the request for post-response audit if needed.
         // Actual response-time logging is handled by ErrorHandler.
