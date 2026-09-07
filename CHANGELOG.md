@@ -61,6 +61,14 @@ All notable changes to this project are documented here. The format follows
   cookie jars, `.env` files, keys and agent scratch directories.
 
 ### Fixed
+- `Backup\FilesystemBackup` no longer shells out to `tar` via `exec()`, nor
+  probes for it with `which`. It archives with PHP's bundled `ZipArchive`
+  instead, falling back to a JSON manifest when the zip extension is absent.
+  The old path was guarded by `escapeshellarg()` and never received
+  user-supplied paths, so it was not injectable, but `exec()`/`which` break on
+  the many hosts that disable shell functions, fail on Windows, and are flagged
+  by WordPress.org's plugin review. The plugin now contains no
+  process-execution calls at all.
 - `phpcs.xml` referenced a ruleset named `WordPress-Phpcs`, which does not
   exist, and the WordPress Coding Standards package was never a dependency, so
   `composer lint` failed with "Referenced sniff does not exist" and had never
