@@ -1,6 +1,4 @@
-```
-# Build artifacts
-wordpress/wpforge/assets/
+# Examples
 
 # Cache directories
 __pycache__/
