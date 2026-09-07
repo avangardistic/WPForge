@@ -1,59 +1,48 @@
+```
+# Build artifacts
+wordpress/wpforge/assets/
+
 # Dependencies
-/vendor/
 node_modules/
-venv/
-.venv/
+package-lock.json
 
-# Environment and secrets — never commit these
+# Environment
 .env
-.env.*
-!.env.example
-*.pem
-*.key
-cookies.txt
-wpcookies.txt
+.env.local
+*.env.*
 
-# Scratch / agent working directories
-.freebuff/
-.scratch/
-tmp/
-
-# Build and distribution artifacts
-/build/
-dist/
-*.zip
-
-# Compiled output
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.exe
-*.dll
-*.so
+# Editors
+.vscode/
+.idea/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
 
-# Editors
-.vscode/
-.idea/
-*.sublime-*
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Coverage and testing
-.phpunit.result.cache
-.coverage
-coverage/
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-
-# WordPress specific
-wordpress/wpforge/languages/*.pot
-
-# System files
-.DS_Store
-Thumbs.db
-.phpunit.cache/
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+```

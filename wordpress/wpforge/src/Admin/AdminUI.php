@@ -86,20 +86,54 @@ class AdminUI
             return;
         }
 
-        wp_enqueue_style(
-            'wpforge-admin',
-            WPFORGE_PLUGIN_URL . 'assets/css/admin.css',
-            [],
-            WPFORGE_VERSION
-        );
+        // Enqueue legacy admin styles if they exist
+        if (file_exists(WPFORGE_PLUGIN_DIR . 'assets/css/admin.css')) {
+            wp_enqueue_style(
+                'wpforge-admin',
+                WPFORGE_PLUGIN_URL . 'assets/css/admin.css',
+                [],
+                WPFORGE_VERSION
+            );
+        }
 
-        wp_enqueue_script(
-            'wpforge-admin',
-            WPFORGE_PLUGIN_URL . 'assets/js/admin.js',
-            [],
-            WPFORGE_VERSION,
-            true
-        );
+        // Enqueue legacy admin script if it exists
+        if (file_exists(WPFORGE_PLUGIN_DIR . 'assets/js/admin.js')) {
+            wp_enqueue_script(
+                'wpforge-admin',
+                WPFORGE_PLUGIN_URL . 'assets/js/admin.js',
+                [],
+                WPFORGE_VERSION,
+                true
+            );
+        }
+
+        // Enqueue React app for the Connect page
+        if ($hook === 'wpforge_page_wpforge-connect') {
+            // Enqueue React app CSS
+            wp_enqueue_style(
+                'wpforge-react-app',
+                WPFORGE_PLUGIN_URL . 'assets/assets/index-CMK_vOms.css',
+                [],
+                WPFORGE_VERSION
+            );
+
+            // Enqueue React app JS
+            wp_enqueue_script(
+                'wpforge-react-app',
+                WPFORGE_PLUGIN_URL . 'assets/assets/index-CnqWIx8j.js',
+                [],
+                WPFORGE_VERSION,
+                true
+            );
+
+            // Pass WordPress data to the React app
+            wp_localize_script('wpforge-react-app', 'wpforgeConfig', [
+                'apiUrl' => rest_url('wpforge/v1'),
+                'nonce' => wp_create_nonce('wp_rest'),
+                'siteUrl' => get_site_url(),
+                'adminUrl' => admin_url(),
+            ]);
+        }
     }
 
     /* ------------------------------------------------------------------ */
@@ -283,195 +317,11 @@ class AdminUI
             wp_die(esc_html__('You do not have permission to view this page.', 'wpforge'), 403);
         }
 
-        $userId   = get_current_user_id();
-        $user     = wp_get_current_user();
-        $userName = $user->user_login;
-        $siteUrl  = get_site_url();
-
-        // One-time secrets created by the forms above.
-        $newToken   = get_transient('wpforge_new_token_' . $userId);
-        $newAppPass = get_transient('wpforge_new_apppass_' . $userId);
-        $flash      = get_transient('wpforge_flash_' . $userId);
-        $testResult = get_transient('wpforge_test_result_' . $userId);
-
-        $this->consumeTransient('wpforge_new_token_' . $userId);
-        $this->consumeTransient('wpforge_new_apppass_' . $userId);
-        $this->consumeTransient('wpforge_flash_' . $userId);
-        $this->consumeTransient('wpforge_test_result_' . $userId);
-
-        $tokens        = $this->tokens()->listTokens($userId);
-        $appPassCount  = $this->countActiveAppPasswords($userId);
-
         $this->renderHeader('Connect to AI', 'Give an AI assistant secure access to this site');
-
-        // Flash / notices
-        if ($flash) {
-            echo '<div class="notice notice-error"><p>' . esc_html($flash) . '</p></div>';
-        }
-        // phpcs:ignore WordPress.Security.NonceVerification -- see note above.
-        if (isset($_GET['wpforge_created'])) {
-            // phpcs:ignore WordPress.Security.NonceVerification -- see note above.
-            $kind = sanitize_key($_GET['wpforge_created']);
-            $msg  = $kind === 'created_app'
-                ? 'Application password created. It is displayed once below — copy it now.'
-                : ($kind === 'error' ? 'There was a problem creating the credential.' : 'API token created. It is displayed once below — copy it now.');
-            $class = $kind === 'error' ? 'notice-error' : 'notice-success';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- see note above.
-            echo '<div class="notice ' . $class . '"><p>' . esc_html($msg) . '</p></div>';
-        }
-
-        // ── Step 1: how it works ────────────────────────────────────────
-        echo '<div class="wpforge-panel">';
-        echo '<h2>How it works</h2>';
-        echo '<p>An AI assistant (Claude, Cursor, or any MCP client) talks to the '
-             . '<strong>WPForge MCP server</strong>, which calls this site&rsquo;s REST API. '
-             . 'The MCP server authenticates with <strong>your WordPress username + an Application Password</strong> '
-             . '&mdash; never your real login password.</p>';
-        echo '<ol class="wpforge-steps">'
-           . '<li>Create a credential below (recommended: Application Password).</li>'
-           . '<li>Copy the configuration snippet for the AI tool you use.</li>'
-           . '<li>Click <em>Test connection</em> to confirm everything works.</li>'
-           . '</ol>';
-        echo '</div>';
-
-        // ── Step 2: create a credential ─────────────────────────────────
-        echo '<div class="wpforge-panel">';
-        echo '<h2>Step 1 — Create AI credentials</h2>';
-
-        // Application Password box
-        echo '<div class="wpforge-box">';
-        echo '<h3>Option A — WordPress Application Password <span class="wpforge-badge wpforge-badge--green">Recommended</span></h3>';
-        echo '<p>Works out of the box with the MCP server&rsquo;s Basic auth. '
-             . 'You can also create/revoke these anytime under '
-             . '<strong>Users &rarr; Profile &rarr; Application Passwords</strong>.</p>';
-        if ($newAppPass) {
-            echo '<p><strong>New application password &mdash; copy it now:</strong></p>';
-            echo '<div class="wpforge-code-row"><pre class="wpforge-code" id="wpforge-app-pass">'
-                 . esc_html($newAppPass) . '</pre>'
-                 . '<button type="button" class="button wpforge-copy" data-target="wpforge-app-pass">Copy</button></div>';
-            echo '<p class="wpforge-hint">Use it as the password in the MCP configuration below. '
-                 . 'It cannot be shown again.</p>';
-        } elseif ($appPassCount > 0) {
-            echo '<p class="wpforge-muted">' . (int) $appPassCount . ' active application password(s) exist '
-                 . 'for <strong>' . esc_html($userName) . '</strong>. You can reuse one or create a fresh one.</p>';
-        }
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-        $this->nonceField('create_app_password');
-        echo '<input type="hidden" name="action" value="wpforge_create_app_password">';
-        echo '<button type="submit" class="button button-primary">Generate Application Password</button>';
-        echo '</form>';
-        echo '</div>';
-
-        // WPForge token box
-        echo '<div class="wpforge-box">';
-        echo '<h3>Option B — WPForge API token</h3>';
-        echo '<p>A plugin-native token sent as <code>Authorization: Bearer &lt;token&gt;</code>. '
-             . 'Use this with the MCP server or curl directly.</p>';
-        if ($newToken) {
-            echo '<p><strong>New API token &mdash; copy it now:</strong></p>';
-            echo '<div class="wpforge-code-row"><pre class="wpforge-code" id="wpforge-api-token">'
-                 . esc_html($newToken) . '</pre>'
-                 . '<button type="button" class="button wpforge-copy" data-target="wpforge-api-token">Copy</button></div>';
-            echo '<p class="wpforge-hint">Stored hashed on the server; it cannot be shown again.</p>';
-        }
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-        $this->nonceField('create_token');
-        echo '<input type="hidden" name="action" value="wpforge_create_token">';
-        echo '<label for="wpforge-token-desc">Description</label> ';
-        echo '<input type="text" id="wpforge-token-desc" name="description" value="' . esc_attr('WPForge AI token') . '"> ';
-        echo '<button type="submit" class="button button-primary">Generate API token</button>';
-        echo '</form>';
-        echo '</div>';
-
-        echo '</div>'; // panel
-
-        // ── Step 3: MCP configuration snippets ─────────────────────────
-        $passwordForSnippet = $newAppPass ?: ($newToken ?: '');
-
-        echo '<div class="wpforge-panel">';
-        echo '<h2>Step 2 — Copy the MCP configuration</h2>';
-
-        if ($passwordForSnippet === '') {
-            echo '<p class="wpforge-muted">Generate a credential above first, then the snippets below will '
-                 . 'be pre-filled for you. You can also paste an existing Application Password into the '
-                 . 'test form below to pre-fill the snippets.</p>';
-        }
-
-        // The codeBlock() helper escapes its arguments with esc_html()/esc_attr();
-        // the sniff cannot follow the method call, so it is disabled for this run.
-        // phpcs:disable WordPress.Security.EscapeOutput.OutputNotEscaped
-        echo $this->codeBlock(
-            'claude',
-            'Claude Desktop — <code>claude_desktop_config.json</code>',
-            $this->mcpClaudeSnippet($siteUrl, $userName, $passwordForSnippet)
-        );
-        echo $this->codeBlock('cursor', 'Cursor — <code>~/.cursor/mcp.json</code>', $this->mcpCursorSnippet($siteUrl, $userName, $passwordForSnippet));
-        echo $this->codeBlock('cli', 'Any MCP client (CLI)', $this->mcpCliSnippet($siteUrl, $userName, $passwordForSnippet));
-        // phpcs:enable WordPress.Security.EscapeOutput.OutputNotEscaped
-
-        echo '<div class="wpforge-box">';
-        echo '<h3>Direct API access (curl)</h3>';
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- see note above.
-        echo $this->codeBlock('curl', '', $this->curlSnippet($siteUrl, $userName, $passwordForSnippet));
-        echo '</div>';
-
-        echo '</div>'; // panel
-
-        // ── Step 4: test connection ────────────────────────────────────
-        echo '<div class="wpforge-panel">';
-        echo '<h2>Step 3 — Test the connection</h2>';
-        if ($testResult) {
-            $ok = ($testResult['status'] ?? '') === 'ok';
-            echo '<div class="notice ' . ($ok ? 'notice-success' : 'notice-error') . '">'
-               . '<p><strong>' . ($ok ? 'Connection OK' : 'Connection failed') . ':</strong> '
-               . esc_html($testResult['message'] ?? '') . '</p>'
-               . '</div>';
-        }
-        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="wpforge-test-form">';
-        $this->nonceField('test_connection');
-        echo '<input type="hidden" name="action" value="wpforge_test_connection">';
-        echo '<label for="wpforge-test-user">Username</label> ';
-        echo '<input type="text" id="wpforge-test-user" name="username" value="' . esc_attr($userName) . '"> ';
-        echo '<label for="wpforge-test-pass">Password</label> ';
-        echo '<input type="password" id="wpforge-test-pass" name="password" value="' . esc_attr($newAppPass ?: '') . '"> ';
-        echo '<button type="submit" class="button button-primary">Test connection</button>';
-        echo '</form>';
-        echo '</div>';
-
-        // ── Token management ─
-        echo '<div class="wpforge-panel">';
-        echo '<h2>Manage API tokens</h2>';
-        if (empty($tokens)) {
-            echo '<p class="wpforge-muted">No tokens yet.</p>';
-        } else {
-            echo '<table class="widefat striped">'
-               . '<thead><tr><th>Token</th><th>Description</th><th>Created</th><th>Last used</th><th>Expires</th><th>Status</th><th></th></tr></thead><tbody>';
-            foreach ($tokens as $t) {
-                $status = !empty($t['revoked']) ? 'revoked' : 'active';
-                echo '<tr>'
-                   . '<td><code>' . esc_html(substr((string) $t['token_id'], 0, 14)) . '&hellip;</code></td>'
-                   . '<td>' . esc_html($t['description'] ?? '') . '</td>'
-                   . '<td>' . esc_html($t['created_at'] ?? '') . '</td>'
-                   . '<td>' . esc_html($t['last_used'] ?? '—') . '</td>'
-                   . '<td>' . esc_html($t['expires_at'] ?? '') . '</td>'
-                   . '<td>' . ($status === 'active'
-                       ? '<span class="wpforge-badge wpforge-badge--green">active</span>'
-                       : '<span class="wpforge-badge wpforge-badge--grey">revoked</span>') . '</td>'
-                   . '<td>';
-                if ($status === 'active') {
-                    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" style="display:inline">';
-                    $this->nonceField('revoke_token');
-                    echo '<input type="hidden" name="action" value="wpforge_revoke_token">';
-                    echo '<input type="hidden" name="token_id" value="' . esc_attr($t['token_id']) . '">';
-                    echo '<button type="submit" class="button button-link-delete">Revoke</button>';
-                    echo '</form>';
-                }
-                echo '</td></tr>';
-            }
-            echo '</tbody></table>';
-        }
-        echo '</div>';
-
+        
+        // Render React app container
+        echo '<div id="wpforge-react-root"></div>';
+        
         $this->renderFooter();
     }
 
