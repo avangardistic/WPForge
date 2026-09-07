@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: WPForge - AI Remote Control Bridge
  * Plugin URI: https://github.com/avangardistic/WPForge
@@ -43,7 +44,8 @@ spl_autoload_register(function ($class) {
     }
 });
 
-function wpforge_bootstrap(): void {
+function wpforge_bootstrap(): void
+{
     $plugin = WPForge_Plugin::instance();
     $plugin->init();
 }
@@ -60,7 +62,9 @@ final class WPForge_Plugin
         return self::$instance;
     }
 
-    private function __construct() {}
+    private function __construct()
+    {
+    }
 
     public function init(): void
     {

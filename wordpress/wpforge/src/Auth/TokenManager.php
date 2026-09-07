@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Auth;
 
 use WP_User;
@@ -46,7 +47,7 @@ class TokenManager
 
         return [
             'token_id'    => $tokenId,
-            'token_secret'=> $tokenSecret,
+            'token_secret' => $tokenSecret,
             'full_token'  => $tokenId . '.' . $tokenSecret,
             'created_at'  => current_time('mysql'),
             'expires_at'  => gmdate('Y-m-d H:i:s', strtotime('+1 year')),
@@ -116,7 +117,7 @@ class TokenManager
             ['revoked' => 1],
             ['token_id' => $tokenId]
         );
-        
+
         return $result !== false && $result > 0;
     }
 
@@ -146,7 +147,7 @@ class TokenManager
             ['revoked' => 1],
             ['user_id' => $userId]
         );
-        
+
         return $result !== false;
     }
 

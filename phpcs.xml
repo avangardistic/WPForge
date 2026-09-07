@@ -1,10 +1,24 @@
 <?xml version="1.0"?>
-<ruleset name="WPForge Coding Standards">
-    <description>WPForge PHP coding standards</description>
+<ruleset name="WPForge">
+    <description>
+        WPForge coding standards.
+
+        The codebase is PSR-12 — four spaces, camelCase methods, typed
+        properties — so PSR-12 is the formatting baseline rather than
+        WordPress-Core, which mandates tabs, snake_case and Yoda conditions and
+        would contradict it line for line.
+
+        On top of that we run the WordPress sniffs that catch real defects in a
+        plugin: unescaped output where HTML is actually rendered, missing nonce
+        checks on admin-post handlers, unprepared SQL, and use of deprecated
+        core functions. Each narrowing below is deliberate and explained.
+    </description>
 
     <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg name="basepath" value="."/>
+    <arg value="ps"/>
 
-    <!-- Paths -->
     <file>wordpress/wpforge/src</file>
     <file>wordpress/wpforge/routes</file>
     <file>wordpress/wpforge/wpforge.php</file>
@@ -12,25 +26,96 @@
     <file>tests</file>
     <file>tools</file>
 
-    <!-- Exclude -->
-    <exclude-pattern>vendor/*</exclude-pattern>
-    <exclude-pattern>node_modules/*</exclude-pattern>
-    <exclude-pattern>build/*</exclude-pattern>
-    <exclude-pattern>mcp/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/build/*</exclude-pattern>
+    <exclude-pattern>*/mcp/*</exclude-pattern>
 
-    <!-- WordPress Coding Standards -->
-    <rule ref="WordPress-Phpcs">
-        <exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
-        <exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
-        <exclude name="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid"/>
-        <exclude name="WordPress.PHP.DevelopmentFunctions.error_log_error_log"/>
-        <exclude name="WordPress.PHP.DiscouragedPHPFunctions.system_calls_shell_exec"/>
+    <!-- ============================================================
+         Formatting baseline
+         ============================================================ -->
+    <rule ref="PSR12">
+        <!-- Route files and the main plugin file are procedural by design:
+             WordPress loads them for their registration side effects. -->
+        <exclude name="PSR1.Files.SideEffects.FoundWithSymbols"/>
     </rule>
 
-    <!-- PSR-12 -->
-    <rule ref="PSR12"/>
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="160"/>
+            <property name="absoluteLineLimit" value="0"/>
+        </properties>
+    </rule>
 
-    <!-- Security -->
-    <rule ref="WordPress.Security.NonceVerification"/>
+    <!-- The main plugin file follows WordPress convention: no namespace, and a
+         prefixed class name (WPForge_Plugin) so it is unambiguous in the global
+         scope. Everything under src/ is namespaced and PSR-4. -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>*/wpforge.php</exclude-pattern>
+    </rule>
+    <rule ref="Squiz.Classes.ValidClassName.NotCamelCaps">
+        <exclude-pattern>*/wpforge.php</exclude-pattern>
+    </rule>
+
+    <!-- ============================================================
+         WordPress correctness and security
+         ============================================================ -->
+
+    <!-- Output escaping only applies where HTML is rendered. The REST layer
+         returns JSON through API\Response and throws exceptions whose messages
+         are never echoed, so the sniff is scoped to the admin screens. -->
+    <rule ref="WordPress.Security.EscapeOutput">
+        <include-pattern>*/src/Admin/*</include-pattern>
+        <properties>
+            <!-- AdminUI builds its markup through these helpers, which escape
+                 internally (esc_html/esc_attr/wp_kses_post). Declaring them
+                 keeps the sniff active on everything else in the file. -->
+            <property name="customEscapingFunctions" type="array">
+                <element value="card"/>
+                <element value="codeBlock"/>
+                <element value="badge"/>
+                <element value="statusRow"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Nonces are a browser-form concern. REST requests authenticate with an
+         Application Password or Bearer token instead, so this is scoped to the
+         admin-post handlers. AdminUI verifies through its guardNonce() helper,
+         which the sniff cannot follow; those call sites carry a phpcs:ignore
+         naming it. -->
+    <rule ref="WordPress.Security.NonceVerification">
+        <include-pattern>*/src/Admin/*</include-pattern>
+        <properties>
+            <!-- Every admin-post handler calls guardNonce(), which verifies the
+                 nonce and wp_die()s on failure. The sniff cannot follow the
+                 helper, so it is named here rather than suppressed. -->
+            <property name="customNonceVerificationFunctions" type="array">
+                <element value="guardNonce"/>
+            </property>
+        </properties>
+    </rule>
+
     <rule ref="WordPress.Security.ValidatedSanitizedInput"/>
+
+    <rule ref="WordPress.WP.DeprecatedFunctions"/>
+    <rule ref="WordPress.WP.DeprecatedParameters"/>
+
+    <!-- SQL. Values are always bound through $wpdb->prepare(); what remains are
+         table *identifiers* built from $wpdb->prefix, which prepare() cannot
+         parameterise, and the caller-supplied SQL that /database/query exists to
+         run (guarded by developer_mode, allow_database_writes and a SELECT-only
+         check). Neither is expressible to this sniff, so the two interpolation
+         codes are off while the placeholder sniff stays on. -->
+    <rule ref="WordPress.DB.PreparedSQL">
+        <exclude name="WordPress.DB.PreparedSQL.NotPrepared"/>
+        <exclude name="WordPress.DB.PreparedSQL.InterpolatedNotPrepared"/>
+    </rule>
+    <rule ref="WordPress.DB.PreparedSQLPlaceholders"/>
+
+    <!-- ============================================================
+         PHP version floor — matches the plugin header
+         ============================================================ -->
+    <config name="testVersion" value="8.1-"/>
+    <rule ref="PHPCompatibilityWP"/>
 </ruleset>

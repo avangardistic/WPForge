@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Auth;
 
 /**
@@ -42,7 +43,9 @@ class Authenticator
         if (!$authHeader || strpos($authHeader, 'Basic ') !== 0) {
             // Fallback to $_SERVER for some server configs.
             if (isset($_SERVER['PHP_AUTH_USER'])) {
-                $username = sanitize_user($_SERVER['PHP_AUTH_USER']);
+                $username = sanitize_user(wp_unslash($_SERVER['PHP_AUTH_USER']));
+                // A password must not be passed through sanitize_*(); that would alter it.
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see note above.
                 $password = wp_unslash($_SERVER['PHP_AUTH_PW'] ?? '');
             } else {
                 return null;

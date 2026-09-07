@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\WordPress;
 
 /**
@@ -26,11 +27,11 @@ class PluginManager
                 'slug'        => $slug,
                 'version'     => $plugin['Version'] ?? '',
                 'author'      => $plugin['Author'] ?? '',
-                'description'=> $plugin['Description'] ?? '',
+                'description' => $plugin['Description'] ?? '',
                 'path'        => $path,
                 'is_active'   => in_array($path, $active) || is_plugin_active($path),
                 'requires_wp' => $plugin['RequiresWP'] ?? '',
-                'requires_php'=> $plugin['RequiresPHP'] ?? '',
+                'requires_php' => $plugin['RequiresPHP'] ?? '',
                 'text_domain' => $plugin['TextDomain'] ?? '',
                 'update_uri'  => $plugin['UpdateURI'] ?? '',
             ];
@@ -59,11 +60,11 @@ class PluginManager
             'slug'        => dirname($pluginPath),
             'version'     => $plugin['Version'] ?? '',
             'author'      => $plugin['Author'] ?? '',
-            'description'=> $plugin['Description'] ?? '',
+            'description' => $plugin['Description'] ?? '',
             'path'        => $pluginPath,
             'is_active'   => is_plugin_active($pluginPath),
             'requires_wp' => $plugin['RequiresWP'] ?? '',
-            'requires_php'=> $plugin['RequiresPHP'] ?? '',
+            'requires_php' => $plugin['RequiresPHP'] ?? '',
             'text_domain' => $plugin['TextDomain'] ?? '',
         ];
     }
@@ -107,7 +108,7 @@ class PluginManager
                 'new_version'   => $update->update->new_version ?? '',
                 'url'           => $update->update->url ?? '',
                 'package'       => $update->update->package ?? '',
-                'upgrade_notice'=> $update->update->upgrade_notice ?? '',
+                'upgrade_notice' => $update->update->upgrade_notice ?? '',
             ];
         }
 

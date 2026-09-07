@@ -1,4 +1,5 @@
 <?php
+
 use WPForge\API\Response;
 use WPForge\WordPress\PluginManager;
 

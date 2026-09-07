@@ -1,7 +1,9 @@
 <?php
+
 /**
  * System routes — /status, /capabilities, /environment, /health, /
  */
+
 use WPForge\API\Response;
 use WPForge\API\Router;
 use WPForge\Core\Config;
@@ -16,14 +18,14 @@ register_rest_route($ns, '/status', [
         return Response::success([
             'status'           => 'ok',
             'version'          => WPFORGE_VERSION,
-            'wordpress_version'=> get_bloginfo('version'),
+            'wordpress_version' => get_bloginfo('version'),
             'php_version'      => PHP_VERSION,
             'time'             => current_time('mysql'),
             'site_url'         => get_site_url(),
             'home_url'         => get_home_url(),
         ]);
     },
-    'permission_callback' => function() {
+    'permission_callback' => function () {
         $config = new Config();
         return $config->isPublicStatusEnabled() ? true : is_user_logged_in();
     },
@@ -75,10 +77,12 @@ register_rest_route($ns, '/environment', [
                 'memory_limit'       => ini_get('memory_limit'),
                 'max_execution_time' => ini_get('max_execution_time'),
                 'post_max_size'      => ini_get('post_max_size'),
-                'upload_max_filesize'=> ini_get('upload_max_filesize'),
+                'upload_max_filesize' => ini_get('upload_max_filesize'),
             ],
             'server' => [
-                'software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+                'software' => isset($_SERVER['SERVER_SOFTWARE'])
+                    ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE']))
+                    : 'unknown',
                 'https'    => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
             ],
             'database' => [
@@ -96,7 +100,7 @@ register_rest_route($ns, '/health', [
         $checks = [
             'wordpress' => ['status' => 'ok', 'details' => 'WordPress core is accessible'],
             'database'  => ['status' => 'ok', 'details' => 'Database connection is working'],
-            'filesystem'=> [
+            'filesystem' => [
                 'status'  => is_writable(WP_CONTENT_DIR) ? 'ok' : 'warning',
                 'details' => is_writable(WP_CONTENT_DIR) ? 'Content directory is writable' : 'Content directory is not writable',
             ],
@@ -104,7 +108,10 @@ register_rest_route($ns, '/health', [
         ];
         $allOk = true;
         foreach ($checks as $check) {
-            if ($check['status'] === 'error') { $allOk = false; break; }
+            if ($check['status'] === 'error') {
+                $allOk = false;
+                break;
+            }
         }
         return Response::success([
             'status'    => $allOk ? 'healthy' : 'degraded',
@@ -112,7 +119,7 @@ register_rest_route($ns, '/health', [
             'timestamp' => current_time('mysql'),
         ]);
     },
-    'permission_callback' => function() {
+    'permission_callback' => function () {
         $config = new Config();
         return $config->isPublicHealthEnabled() ? true : is_user_logged_in();
     },
@@ -131,10 +138,10 @@ register_rest_route($ns, '/', [
                 'content'   => ['/posts', '/pages', '/content/{type}'],
                 'media'     => ['/media'],
                 'elementor' => ['/elementor/status', '/elementor/documents', '/elementor/templates'],
-                'filesystem'=> ['/files/list', '/files/read', '/files/write'],
+                'filesystem' => ['/files/list', '/files/read', '/files/write'],
                 'database'  => ['/database/status', '/database/tables', '/database/query'],
                 'backup'    => ['/backup'],
-                'diagnostics'=> ['/diagnostics'],
+                'diagnostics' => ['/diagnostics'],
                 'logs'      => ['/logs'],
             ],
             'authentication' => [

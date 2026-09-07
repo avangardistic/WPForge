@@ -1,4 +1,5 @@
 <?php
+
 use WPForge\API\Response;
 use WPForge\Database\Inspector;
 use WPForge\Core\Config;
@@ -11,12 +12,12 @@ register_rest_route($ns, '/database/status', [
     'methods'             => 'GET',
     'callback'            => function ($request) use ($dbInspector, $config) {
         $status = $dbInspector->getStatus();
-        
+
         // SECURITY: Redact sensitive database credentials if configured
         if ($config->shouldRedactDbCredentials()) {
             unset($status['database'], $status['db_user'], $status['db_host']);
         }
-        
+
         return Response::success($status);
     },
     'permission_callback' => 'is_user_logged_in',

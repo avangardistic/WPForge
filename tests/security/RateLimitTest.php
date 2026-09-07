@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Tests\Security;
 
 use WPForge\API\Middleware\RateLimit;

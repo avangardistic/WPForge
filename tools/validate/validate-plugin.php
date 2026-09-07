@@ -1,7 +1,9 @@
 <?php
+
 /**
  * WPForge plugin validation script.
  */
+
 echo "Validating WPForge plugin...\n\n";
 
 $pluginDir = dirname(__DIR__, 2) . '/wordpress/wpforge';

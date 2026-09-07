@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\API;
 
 use WPForge\Core\RequestID;

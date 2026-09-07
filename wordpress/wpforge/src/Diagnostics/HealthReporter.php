@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Diagnostics;
 
 /**
@@ -65,7 +66,7 @@ class HealthReporter
             'status'     => $allOk ? 'healthy' : 'degraded',
             'checks'     => $checks,
             'system'     => $system,
-            'permissions'=> $permissions,
+            'permissions' => $permissions,
             'components' => $components,
             'timestamp'  => current_time('mysql'),
         ];

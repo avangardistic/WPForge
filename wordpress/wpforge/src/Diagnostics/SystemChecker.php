@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Diagnostics;
 
 /**
@@ -37,21 +38,36 @@ class SystemChecker
             'multisite'    => is_multisite(),
             'language'     => get_bloginfo('language'),
             'timezone'     => get_option('timezone_string'),
-            'rewrite_rules'=> (bool) get_option('rewrite_rules'),
+            'rewrite_rules' => (bool) get_option('rewrite_rules'),
         ];
     }
 
     /**
      * Check server environment.
      */
+    /**
+     * Read a $_SERVER value, unslashed and sanitised.
+     *
+     * These end up in API responses, so they are treated as untrusted input
+     * even though they originate from the web server.
+     */
+    private static function server(string $key): ?string
+    {
+        if (!isset($_SERVER[$key])) {
+            return null;
+        }
+
+        return sanitize_text_field(wp_unslash($_SERVER[$key]));
+    }
+
     public function checkServer(): array
     {
         return [
-            'software'   => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
-            'https'      => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-            'port'       => $_SERVER['SERVER_PORT'] ?? null,
-            'protocol'   => $_SERVER['SERVER_PROTOCOL'] ?? null,
-            'remote_addr'=> $_SERVER['REMOTE_ADDR'] ?? null,
+            'software'   => self::server('SERVER_SOFTWARE') ?? 'unknown',
+            'https'      => !empty($_SERVER['HTTPS']) && self::server('HTTPS') !== 'off',
+            'port'       => self::server('SERVER_PORT'),
+            'protocol'   => self::server('SERVER_PROTOCOL'),
+            'remote_addr' => self::server('REMOTE_ADDR'),
             'disk_free'  => function_exists('disk_free_space') ? @disk_free_space(ABSPATH) : null,
         ];
     }
@@ -71,7 +87,7 @@ class SystemChecker
             'connected' => $connected,
             'version'   => $wpdb->db_version(),
             'charset'   => $wpdb->charset,
-            'latency_ms'=> $latency,
+            'latency_ms' => $latency,
             'prefix'    => $wpdb->prefix,
         ];
     }

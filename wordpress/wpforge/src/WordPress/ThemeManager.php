@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\WordPress;
 
 /**
@@ -21,7 +22,7 @@ class ThemeManager
                 'name'        => $theme->get('Name'),
                 'version'     => $theme->get('Version'),
                 'author'      => $theme->get('Author'),
-                'description'=> $theme->get('Description'),
+                'description' => $theme->get('Description'),
                 'screenshot'  => $theme->get_screenshot(),
                 'stylesheet'  => $theme->get_stylesheet(),
                 'template'    => $theme->get_template(),
@@ -50,7 +51,7 @@ class ThemeManager
             'name'        => $theme->get('Name'),
             'version'     => $theme->get('Version'),
             'author'      => $theme->get('Author'),
-            'description'=> $theme->get('Description'),
+            'description' => $theme->get('Description'),
             'screenshot'  => $theme->get_screenshot(),
             'stylesheet'  => $theme->get_stylesheet(),
             'template'    => $theme->get_template(),

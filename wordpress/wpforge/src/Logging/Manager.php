@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Logging;
 
 /**
@@ -57,10 +58,22 @@ class Manager
     /**
      * Log levels.
      */
-    public function debug(string $msg, array $ctx = []): void { $this->write('debug', $msg, $ctx); }
-    public function info(string $msg, array $ctx = []): void { $this->write('info', $msg, $ctx); }
-    public function warning(string $msg, array $ctx = []): void { $this->write('warning', $msg, $ctx); }
-    public function error(string $msg, array $ctx = []): void { $this->write('error', $msg, $ctx); }
+    public function debug(string $msg, array $ctx = []): void
+    {
+        $this->write('debug', $msg, $ctx);
+    }
+    public function info(string $msg, array $ctx = []): void
+    {
+        $this->write('info', $msg, $ctx);
+    }
+    public function warning(string $msg, array $ctx = []): void
+    {
+        $this->write('warning', $msg, $ctx);
+    }
+    public function error(string $msg, array $ctx = []): void
+    {
+        $this->write('error', $msg, $ctx);
+    }
 
     /**
      * Read recent log entries.

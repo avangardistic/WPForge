@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Core;
 
 /**
@@ -23,7 +24,9 @@ class Plugin
         $this->container = new Container();
     }
 
-    private function __clone() {}
+    private function __clone()
+    {
+    }
 
     public function __wakeup()
     {
@@ -128,10 +131,13 @@ class Plugin
      */
     private function extractBearerToken(): ?string
     {
+        // Sanitising would corrupt the token; the value is parsed and verified below.
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see note above.
         $header = isset($_SERVER['HTTP_AUTHORIZATION']) ? wp_unslash($_SERVER['HTTP_AUTHORIZATION']) : '';
 
         // Apache may strip the header into REDIRECT_HTTP_AUTHORIZATION.
         if ($header === '' && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- see note above.
             $header = wp_unslash($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
         }
 

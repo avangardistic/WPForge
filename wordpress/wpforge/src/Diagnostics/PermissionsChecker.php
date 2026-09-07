@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Diagnostics;
 
 /**
@@ -49,7 +50,7 @@ class PermissionsChecker
             'available'  => class_exists('WP_REST_Server'),
             'rest_url'   => $restUrl,
             'is_https'   => $isHttps,
-            'ssl_warning'=> !$isHttps ? 'HTTPS is recommended for API security.' : null,
+            'ssl_warning' => !$isHttps ? 'HTTPS is recommended for API security.' : null,
         ];
     }
 

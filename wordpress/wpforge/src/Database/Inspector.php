@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Database;
 
 /**
@@ -118,10 +119,10 @@ class Inspector
 
     /**
      * Prepare SQL query by converting named parameters to positional placeholders.
-     * 
+     *
      * This method converts :param placeholders to ? and uses $wpdb->prepare()
      * to safely escape all parameter values, preventing SQL injection.
-     * 
+     *
      * @param string $sql SQL query with :named placeholders
      * @param array $params Associative array of parameters
      * @return string Safely prepared SQL query
@@ -134,11 +135,11 @@ class Inspector
 
         // Convert named placeholders (e.g., :id, :name) to positional placeholders (?)
         $positionalSql = preg_replace('/:\w+/', '?', $sql);
-        
+
         // Extract parameter values in the order they appear in the query
         $values = [];
         $paramKeys = array_keys($params);
-        
+
         // Parse the SQL to find placeholder order
         preg_match_all('/:\w+/', $sql, $matches);
         foreach ($matches[0] as $placeholder) {

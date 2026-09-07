@@ -17,17 +17,24 @@ cd ../UIUX && npm install
 
 ## Running tests
 
-The unit and security suites run standalone. The integration suite needs a
-WordPress test installation:
+All three suites extend `WP_UnitTestCase`, so they need a WordPress test
+installation and a MySQL database. The script that CI uses will set one up:
 
 ```bash
-export WP_TESTS_DIR=/path/to/wordpress-tests-lib
+# Creates the database and installs WordPress + the PHPUnit test library
+bash tools/ci/install-wp-tests.sh wordpress_test <db-user> <db-pass> localhost 6.7
+
+export WP_TESTS_DIR=/tmp/wordpress-tests-lib
+export WP_CORE_DIR=/tmp/wordpress
 
 composer test              # everything
 composer test:unit
 composer test:security
-composer test:integration  # requires WP_TESTS_DIR
+composer test:integration
 ```
+
+If `WP_TESTS_DIR` is unset, the bootstrap says so and exits rather than failing
+obscurely.
 
 ## Linting
 

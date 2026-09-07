@@ -1,4 +1,5 @@
 <?php
+
 use WPForge\API\Response;
 use WPForge\Elementor\Adapter;
 use WPForge\Elementor\DocumentManager;

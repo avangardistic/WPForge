@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\WordPress;
 
 /**
@@ -66,7 +67,7 @@ class MediaManager
             'post_title'    => sanitize_text_field($args['title'] ?? pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_FILENAME)),
             'post_content'  => '',
             'post_status'   => 'inherit',
-            'post_mime_type'=> wp_check_filetype(basename($url))['type'] ?? 'application/octet-stream',
+            'post_mime_type' => wp_check_filetype(basename($url))['type'] ?? 'application/octet-stream',
         ];
 
         $attachmentId = media_handle_sideload($fileArray, 0, $defaults['post_title']);

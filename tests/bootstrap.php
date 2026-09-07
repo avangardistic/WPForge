@@ -1,4 +1,5 @@
 <?php
+
 $_tests_dir = getenv('WP_TESTS_DIR') ?: '/tmp/wordpress-tests-lib';
 if (!file_exists($_tests_dir . '/includes/functions.php')) {
     echo "WordPress test environment not found. Set WP_TESTS_DIR.\n";

@@ -8,7 +8,7 @@ namespace WPForge\Core;
 class Config
 {
     private const OPTION_NAME = 'wpforge_config';
-    
+
     private array $defaults;
 
     private ?array $config = null;
@@ -58,14 +58,14 @@ class Config
     public function get(string $key, mixed $default = null): mixed
     {
         $config = $this->all();
-        
+
         if (array_key_exists($key, $config)) {
             return $config[$key];
         }
-        
+
         return $default ?? ($this->defaults[$key] ?? null);
     }
-    
+
     /**
      * Get nested configuration value using dot notation
      */
@@ -73,14 +73,14 @@ class Config
     {
         $config = $this->all();
         $keys = explode('.', $key);
-        
+
         foreach ($keys as $segment) {
             if (!is_array($config) || !array_key_exists($segment, $config)) {
                 return $default;
             }
             $config = $config[$segment];
         }
-        
+
         return $config;
     }
 
@@ -92,13 +92,13 @@ class Config
         if (null === $this->config) {
             $stored = get_option(self::OPTION_NAME, []);
             $this->config = array_merge($this->defaults, $stored);
-            
+
             // Set default filesystem root if not configured
             if (empty($this->config['filesystem_root'])) {
                 $this->config['filesystem_root'] = ABSPATH;
             }
         }
-        
+
         return $this->config;
     }
 

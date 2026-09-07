@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Tests\Unit\Auth;
 
 use WPForge\Auth\TokenManager;

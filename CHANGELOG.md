@@ -21,6 +21,21 @@ All notable changes to this project are documented here. The format follows
   cookie jars, `.env` files, keys and agent scratch directories.
 
 ### Fixed
+- `phpcs.xml` referenced a ruleset named `WordPress-Phpcs`, which does not
+  exist, and the WordPress Coding Standards package was never a dependency, so
+  `composer lint` failed with "Referenced sniff does not exist" and had never
+  run. The ruleset also combined `WordPress` with `PSR12`, which contradict each
+  other line for line — tabs against spaces, snake_case against camelCase. It is
+  now PSR-12 (matching the code) plus the WordPress sniffs that catch real
+  defects, with WPCS and PHPCompatibility added as dev dependencies. 233
+  violations were auto-fixed and the rest resolved; the tree is clean.
+- `Logging\Logger` and `WordPress\SiteInspector` passed `$_SERVER` values to
+  `sanitize_text_field()` without `wp_unslash()`, leaving escaped slashes in the
+  audit log and in API output. `Diagnostics\SystemChecker`, `routes/system.php`,
+  `API\Middleware\RateLimit` and `Auth\Authenticator` read `$_SERVER` with no
+  unslashing or sanitising at all. All are now unslashed and sanitised, except
+  the two credential-carrying headers, which are annotated explaining why
+  sanitising them would corrupt the value being verified.
 - Seven source files failed to parse on PHP 8.1, the version the plugin declares
   as its minimum in five places. They used `true` as a standalone type in a union
   return type (`true|WP_Error`), which is a PHP **8.2** feature and a fatal parse
@@ -54,6 +69,9 @@ All notable changes to this project are documented here. The format follows
 - `.gitignore` was wrapped in Markdown code fences.
 
 ### Added
+- `tools/ci/install-wp-tests.sh`, which provisions WordPress and its PHPUnit
+  test library. Every suite extends `WP_UnitTestCase`, so the tests were
+  unrunnable without one and CI had nothing to run them against.
 - GitHub Actions CI: PHPCS, `php -l` across PHP 8.1-8.4, PHPUnit unit and
   security suites, plugin validation, MCP TypeScript build, and a secret scan.
 - Issue and pull request templates, and a Dependabot configuration.

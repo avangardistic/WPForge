@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Elementor;
 
 /**
@@ -34,7 +35,7 @@ class BackupManager
 
         $backupData = [
             'backup_id'  => $backupId,
-            'document_id'=> $documentId,
+            'document_id' => $documentId,
             'created_at' => current_time('mysql'),
             'document'   => $document,
         ];
@@ -46,7 +47,7 @@ class BackupManager
 
         return [
             'backup_id'  => $backupId,
-            'document_id'=> $documentId,
+            'document_id' => $documentId,
             'filename'   => $filename,
             'size'       => filesize($filePath),
             'created_at' => current_time('mysql'),
@@ -67,7 +68,7 @@ class BackupManager
             if ($data) {
                 $backups[] = [
                     'backup_id'  => $data['backup_id'],
-                    'document_id'=> $data['document_id'],
+                    'document_id' => $data['document_id'],
                     'filename'   => basename($file),
                     'size'       => filesize($file),
                     'created_at' => $data['created_at'],
@@ -101,7 +102,7 @@ class BackupManager
         return $adapter->updateDocument($documentId, [
             'title'         => $data['document']['title'] ?? '',
             'status'        => $data['document']['status'] ?? 'publish',
-            'elementor_data'=> $data['document']['elementor_data'] ?? [],
+            'elementor_data' => $data['document']['elementor_data'] ?? [],
         ]);
     }
 

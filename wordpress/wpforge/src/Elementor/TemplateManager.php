@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Elementor;
 
 /**
@@ -75,7 +76,7 @@ class TemplateManager
             'type'          => get_post_meta($post->ID, '_elementor_template_type', true),
             'status'        => $post->post_status,
             'source'        => get_post_meta($id, '_elementor_template_source', true) ?: 'local',
-            'elementor_data'=> $content ? json_decode($content, true) : null,
+            'elementor_data' => $content ? json_decode($content, true) : null,
             'date'          => $post->post_date,
             'modified'      => $post->post_modified,
         ];

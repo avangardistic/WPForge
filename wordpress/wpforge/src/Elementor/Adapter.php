@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Elementor;
 
 /**
@@ -29,10 +30,22 @@ class Adapter
         }
     }
 
-    public function isAvailable(): bool { return $this->available; }
-    public function isProAvailable(): bool { return $this->proAvailable; }
-    public function getVersion(): ?string { return $this->version; }
-    public function getProVersion(): ?string { return $this->proVersion; }
+    public function isAvailable(): bool
+    {
+        return $this->available;
+    }
+    public function isProAvailable(): bool
+    {
+        return $this->proAvailable;
+    }
+    public function getVersion(): ?string
+    {
+        return $this->version;
+    }
+    public function getProVersion(): ?string
+    {
+        return $this->proVersion;
+    }
 
     /**
      * Get full capabilities report.
@@ -75,8 +88,8 @@ class Adapter
             'status'        => $post->post_status,
             'date'          => $post->post_date,
             'modified'      => $post->post_modified,
-            'elementor_data'=> $content ? json_decode($content, true) : null,
-            'elementor_meta'=> $this->filterMeta($meta),
+            'elementor_data' => $content ? json_decode($content, true) : null,
+            'elementor_meta' => $this->filterMeta($meta),
             'editor'        => get_post_meta($id, '_elementor_edit_mode', true) === 'builder',
             'version'       => get_post_meta($id, '_elementor_version', true),
             'slug'          => $post->post_name,
@@ -137,7 +150,7 @@ class Adapter
 
         return [
             'success' => true,
-            'document'=> $updated,
+            'document' => $updated,
             'backup'  => $backup,
             'changes' => $this->calculateChanges($backup, $updated),
         ];

@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\Filesystem;
 
 /**
@@ -41,7 +42,7 @@ class Manager
                 'type'       => is_dir($fullFile) ? 'directory' : 'file',
                 'size'       => is_file($fullFile) ? filesize($fullFile) : 0,
                 'modified'   => date('Y-m-d H:i:s', filemtime($fullFile)),
-                'permissions'=> substr(sprintf('%o', fileperms($fullFile)), -4),
+                'permissions' => substr(sprintf('%o', fileperms($fullFile)), -4),
             ];
         }
 

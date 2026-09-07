@@ -1,7 +1,9 @@
 <?php
+
 /**
  * WPForge uninstall — clean up all data on plugin deletion.
  */
+
 if (!defined('WP_UNINSTALL_PLUGIN')) {
     exit;
 }
@@ -22,7 +24,8 @@ delete_option('wpforge_developer_mode');
 $logDir = WP_CONTENT_DIR . '/wpforge-logs';
 $backupDir = WP_CONTENT_DIR . '/wpforge-backups';
 
-function wpforge_recursive_delete($dir) {
+function wpforge_recursive_delete($dir)
+{
     if (!is_dir($dir)) {
         return;
     }

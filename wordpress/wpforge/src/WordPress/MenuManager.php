@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\WordPress;
 
 /**
@@ -110,7 +111,7 @@ class MenuManager
                 'url'       => $item->url,
                 'target'    => $item->target,
                 'classes'   => $item->classes,
-                'menu_order'=> (int) $item->menu_order,
+                'menu_order' => (int) $item->menu_order,
                 'parent'    => (int) $item->menu_item_parent,
                 'type'      => $item->type,
                 'object'    => $item->object,

@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\API\Middleware;
 
 use WPForge\Core\Config;
@@ -60,8 +61,8 @@ class RateLimit
 
         foreach ($headers as $header) {
             if (!empty($_SERVER[$header])) {
-                $ip = explode(',', $_SERVER[$header])[0];
-                $ip = trim($ip);
+                $raw = sanitize_text_field(wp_unslash($_SERVER[$header]));
+                $ip  = trim(explode(',', $raw)[0]);
                 if (filter_var($ip, FILTER_VALIDATE_IP)) {
                     return $ip;
                 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\WordPress;
 
 /**
@@ -36,7 +37,7 @@ class SiteInspector
                 'tags'       => (int) wp_count_terms('post_tag'),
             ],
             'users'  => (int) count_users()['total_users'],
-            'plugins'=> count(get_plugins()),
+            'plugins' => count(get_plugins()),
             'menus'  => count(wp_get_nav_menus()),
         ];
     }
@@ -92,7 +93,7 @@ class SiteInspector
             'is_active'   => get_template() === $theme->get_stylesheet(),
             'parent'      => $theme->parent() ? $theme->parent()->get('Name') : null,
             'theme_uri'   => $theme->get('ThemeURI'),
-            'description'=> $theme->get('Description'),
+            'description' => $theme->get('Description'),
             'template'    => $theme->get_template(),
             'stylesheet'  => $theme->get_stylesheet(),
         ];
@@ -109,11 +110,11 @@ class SiteInspector
                 'name'        => $plugin['Name'] ?? '',
                 'version'     => $plugin['Version'] ?? '',
                 'author'      => $plugin['Author'] ?? '',
-                'description'=> $plugin['Description'] ?? '',
+                'description' => $plugin['Description'] ?? '',
                 'path'        => $path,
                 'is_active'   => in_array($path, $active) || is_plugin_active($path),
                 'requires_wp' => $plugin['RequiresWP'] ?? '',
-                'requires_php'=> $plugin['RequiresPHP'] ?? '',
+                'requires_php' => $plugin['RequiresPHP'] ?? '',
                 'text_domain' => $plugin['TextDomain'] ?? '',
             ];
         }
@@ -153,8 +154,8 @@ class SiteInspector
             $terms = get_terms(['taxonomy' => $name, 'hide_empty' => false]);
             $result[$name] = [
                 'label'       => $tax->label,
-                'hierarchical'=> $tax->hierarchical,
-                'show_in_rest'=> $tax->show_in_rest,
+                'hierarchical' => $tax->hierarchical,
+                'show_in_rest' => $tax->show_in_rest,
                 'rest_base'   => $tax->rest_base,
                 'post_types'  => $tax->object_type,
                 'count'       => is_wp_error($terms) ? 0 : count($terms),
@@ -251,7 +252,9 @@ class SiteInspector
     {
         return [
             'php_version'      => PHP_VERSION,
-            'server_software'  => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+            'server_software'  => isset($_SERVER['SERVER_SOFTWARE'])
+                ? sanitize_text_field(wp_unslash($_SERVER['SERVER_SOFTWARE']))
+                : 'unknown',
             'max_upload_size'  => (int) wp_max_upload_size(),
             'memory_limit'     => ini_get('memory_limit'),
             'max_execution_time' => ini_get('max_execution_time'),

@@ -1,4 +1,5 @@
 <?php
+
 namespace WPForge\API\Middleware;
 
 use WPForge\Auth\Authenticator;
