@@ -139,6 +139,28 @@ All notable changes to this project are documented here. The format follows
 - Pinned `autoprefixer` and `postcss` in `UIUX/package.json`, which were floating
   on `latest`.
 
+### UI/UX (dashboard)
+- Added semantic colour tokens (`bad`, `warn`, `info`) to the Tailwind config and
+  replaced ~25 raw `red-400`/`red-500` utilities with the `bad` token, so the
+  dashboard no longer hard-codes arbitrary colours outside the design system.
+- The connection dialog now traps focus, moves focus to the first field on open,
+  restores focus to the trigger on close, and is labelled by its heading
+  (`aria-labelledby`) — a keyboard and screen-reader user can no longer tab out
+  of the open modal into the page behind it.
+- Network and HTTP failures are translated into human-readable guidance
+  ("Could not reach the site…", "Authentication failed…", "The WPForge API was
+  not found…") instead of surfacing a raw `Failed to fetch` or bare status code.
+- Panels show shimmer skeleton rows while data loads, in place of a bare
+  "Loading…" line; the shimmer respects `prefers-reduced-motion`.
+- Added a horizontally scrollable capability navigator for viewports below `lg`,
+  where the sidebar is hidden — every area is now reachable on a phone, not just
+  the audit log.
+- Fixed the document `<title>` ("Repository Check Tool" → "WPForge Site Control"),
+  replaced the missing `/vite.svg` favicon (a 404) with an inline branded icon,
+  and added `description`, `theme-color` and `color-scheme` meta tags.
+- Removed the unused `@emotion/react` dependency, and stopped pre-filling a
+  client-specific username in the connection form.
+
 ## [1.0.0] - 2024-01-15
 
 ### Added

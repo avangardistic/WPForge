@@ -8,6 +8,7 @@ import {
   PluginsPanel,
   PostsPanel,
 } from './components/LivePanels';
+import { MobileNav } from './components/MobileNav';
 import { MobileStatusStrip } from './components/MobileStatusStrip';
 import { StatusRail } from './components/StatusRail';
 import { TopBar } from './components/TopBar';
@@ -250,6 +251,11 @@ export function App({ streamLive = true }: AppProps) {
           </div>
 
           <MobileStatusStrip signals={signals} />
+          <MobileNav
+            activeCapability={activeCapability}
+            onSelectCapability={setActiveCapability}
+            grants={grants}
+          />
 
           {renderMain()}
 

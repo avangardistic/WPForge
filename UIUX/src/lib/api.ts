@@ -139,6 +139,32 @@ export function saveConnection(connection: WpForgeConnection | null): void {
   }
 }
 
+/**
+ * Turn an HTTP status (and any message the server sent) into something a person
+ * can act on. The server's own message is preferred when it is specific;
+ * otherwise a status-appropriate explanation is used.
+ */
+function friendlyMessage(status: number, serverMessage: string): string {
+  const generic = !serverMessage || /^request failed/i.test(serverMessage);
+  switch (status) {
+    case 401:
+      return 'Authentication failed. Check the username and Application Password, and that the site is served over HTTPS.';
+    case 403:
+      return serverMessage && !generic
+        ? serverMessage
+        : 'Your account does not have permission for this operation.';
+    case 404:
+      return 'The WPForge API was not found at this site. Confirm the plugin is installed and active, and that permalinks are enabled.';
+    case 429:
+      return 'Too many requests. Wait a moment and try again.';
+    default:
+      if (status >= 500) {
+        return 'The site returned a server error. Check the WordPress error log for details.';
+      }
+      return generic ? `Request failed (HTTP ${status}).` : serverMessage;
+  }
+}
+
 export class WpForgeApi {
   private readonly connection: WpForgeConnection;
   private readonly headers: Record<string, string>;
@@ -169,10 +195,21 @@ export class WpForgeApi {
   }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      ...init,
-      headers: { ...this.headers, ...(init?.headers ?? {}) },
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${this.baseUrl}${path}`, {
+        ...init,
+        headers: { ...this.headers, ...(init?.headers ?? {}) },
+      });
+    } catch {
+      // fetch rejects on DNS failure, TLS error, CORS block, or offline —
+      // never with a useful message, so translate it into a clear one.
+      throw new WpForgeApiError(
+        'NETWORK',
+        'Could not reach the site. Check the URL is correct and served over HTTPS, that the site is online, and that the WPForge plugin is active.',
+        0
+      );
+    }
 
     let payload: unknown = null;
     try {
@@ -186,11 +223,11 @@ export class WpForgeApi {
         payload && typeof payload === 'object' && 'code' in payload
           ? String((payload as { code: unknown }).code)
           : 'HTTP_ERROR';
-      const message =
+      const serverMessage =
         payload && typeof payload === 'object' && 'message' in payload
           ? String((payload as { message: unknown }).message)
-          : `Request failed with status ${response.status}`;
-      throw new WpForgeApiError(code, message, response.status);
+          : '';
+      throw new WpForgeApiError(code, friendlyMessage(response.status, serverMessage), response.status);
     }
 
     // Unwrap the WPForge envelope: { success, request_id, data }.

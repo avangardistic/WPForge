@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import {
   EyeIcon,
@@ -39,9 +39,11 @@ export function ConnectionModal({
   onClose,
 }: ConnectionModalProps) {
   const [host, setHost] = useState(DEFAULT_HOST);
-  const [username, setUsername] = useState('wpforge');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -52,13 +54,49 @@ export function ConnectionModal({
     }
   }, [open, connection]);
 
+  // Focus management: remember the trigger, move focus into the dialog, trap
+  // Tab within it, and restore focus to the trigger when the dialog closes.
   useEffect(() => {
     if (!open) return;
+
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+
+    const focusables = () =>
+      Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      );
+
+    // Focus the first meaningful control once the dialog is painted.
+    const first = focusables()[0];
+    first?.focus();
+
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && phase !== 'connecting') onClose();
+      if (event.key === 'Escape' && phase !== 'connecting') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const firstItem = items[0];
+      const lastItem = items[items.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && active === firstItem) {
+        event.preventDefault();
+        lastItem.focus();
+      } else if (!event.shiftKey && active === lastItem) {
+        event.preventDefault();
+        firstItem.focus();
+      }
     };
+
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      previouslyFocused.current?.focus?.();
+    };
   }, [open, phase, onClose]);
 
   if (!open) return null;
@@ -87,13 +125,15 @@ export function ConnectionModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-label="WPForge API connection">
-      <div className="w-full max-w-[440px] overflow-hidden rounded-lg border border-hairline bg-panel shadow-2xl">
+      aria-labelledby="wpforge-connection-title">
+      <div
+        ref={dialogRef}
+        className="w-full max-w-[440px] overflow-hidden rounded-lg border border-hairline bg-panel shadow-2xl">
         <div className="flex items-center gap-2.5 border-b border-hairline px-4 py-3">
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-forge text-canvas" aria-hidden="true">
             <PlugIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
           </span>
-          <h2 className="text-[13.5px] font-bold text-ink">
+          <h2 id="wpforge-connection-title" className="text-[13.5px] font-bold text-ink">
             {connected ? 'WPForge API connection' : 'Connect to WPForge API'}
           </h2>
           <button
@@ -126,7 +166,7 @@ export function ConnectionModal({
                   onDisconnect();
                   onClose();
                 }}
-                className="self-start rounded-md border border-red-500/30 px-3 py-1.5 text-[11.5px] font-semibold text-red-400 transition-colors duration-150 hover:bg-red-500/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-400">
+                className="self-start rounded-md border border-bad/30 px-3 py-1.5 text-[11.5px] font-semibold text-bad transition-colors duration-150 hover:bg-bad/10 focus:outline-none focus-visible:ring-1 focus-visible:ring-bad">
                 Disconnect
               </button>
             </div>
@@ -196,7 +236,7 @@ export function ConnectionModal({
               </p>
 
               {phase === 'error' && error ? (
-                <p className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-[11.5px] leading-relaxed text-red-400">
+                <p className="rounded-md border border-bad/30 bg-bad/10 px-3 py-2 text-[11.5px] leading-relaxed text-bad">
                   {error}
                 </p>
               ) : null}

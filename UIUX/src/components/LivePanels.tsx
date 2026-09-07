@@ -93,6 +93,24 @@ export function PanelEmpty({
   );
 }
 
+/** Loading placeholder rows shown while a panel's data is being fetched. */
+export function PanelSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <ul aria-hidden="true" className="animate-none">
+      {Array.from({ length: rows }).map((_, index) => (
+        <li key={index} className="flex items-center gap-3 border-b border-hairline px-4 py-[9px]">
+          <span className="wpforge-skeleton h-[18px] w-[18px] flex-shrink-0 rounded" />
+          <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <span className="wpforge-skeleton h-2.5 rounded" style={{ width: `${55 + ((index * 13) % 35)}%` }} />
+            <span className="wpforge-skeleton h-2 rounded" style={{ width: `${30 + ((index * 17) % 25)}%` }} />
+          </span>
+          <span className="wpforge-skeleton h-4 w-12 flex-shrink-0 rounded" />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function PostStatusBadge({ status }: { status: string }) {
   const failed = status === 'trash';
   const pending = status !== 'publish' && !failed;
@@ -100,7 +118,7 @@ function PostStatusBadge({ status }: { status: string }) {
     <span
       className={`rounded border px-1.5 py-0.5 font-mono text-[9.5px] font-semibold uppercase tracking-[0.04em] ${
         failed
-          ? 'border-red-500/25 bg-red-500/10 text-red-400'
+          ? 'border-bad/25 bg-bad/10 text-bad'
           : pending
             ? 'border-forge/25 bg-forge/10 text-forge'
             : 'border-ok/25 bg-ok/10 text-ok'
@@ -134,11 +152,13 @@ export function PostsPanel({
           title="Not connected"
           detail="Open Connect to load the latest posts from your WordPress site."
         />
+      ) : connecting && posts.length === 0 ? (
+        <PanelSkeleton rows={7} />
       ) : posts.length === 0 ? (
         <PanelEmpty
           icon={FileTextIcon}
-          title={connecting ? 'Loading posts…' : 'No posts yet'}
-          detail={connecting ? undefined : 'Published or draft posts will appear here.'}
+          title="No posts yet"
+          detail="Published or draft posts will appear here."
         />
       ) : (
         <ul aria-label="Recent posts">
@@ -221,11 +241,10 @@ export function PluginsPanel({
           title="Not connected"
           detail="Open Connect to inspect plugins on your WordPress site."
         />
+      ) : connecting && plugins.length === 0 ? (
+        <PanelSkeleton rows={7} />
       ) : plugins.length === 0 ? (
-        <PanelEmpty
-          icon={PlugIcon}
-          title={connecting ? 'Loading plugins…' : 'No plugins found'}
-        />
+        <PanelEmpty icon={PlugIcon} title="No plugins found" />
       ) : (
         <ul aria-label="Installed plugins">
           {plugins.map((plugin) => (
@@ -261,11 +280,10 @@ export function MediaPanel({
           title="Not connected"
           detail="Open Connect to browse media on your WordPress site."
         />
+      ) : connecting && media.length === 0 ? (
+        <PanelSkeleton rows={7} />
       ) : media.length === 0 ? (
-        <PanelEmpty
-          icon={ImageIcon}
-          title={connecting ? 'Loading media…' : 'No media items'}
-        />
+        <PanelEmpty icon={ImageIcon} title="No media items" />
       ) : (
         <ul aria-label="Recent media">
           {media.map((item) => (

@@ -20,7 +20,7 @@ export function TopBar({ phase, userLabel, metaSegments, onConnectionClick }: To
   const pillTone = connected
     ? 'border-ok/30 bg-ok/10 text-ok'
     : failed
-      ? 'border-red-500/30 bg-red-500/10 text-red-400'
+      ? 'border-bad/30 bg-bad/10 text-bad'
       : 'border-hairline bg-raised text-muted';
 
   const pillLabel = connected

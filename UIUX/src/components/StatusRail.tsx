@@ -17,7 +17,7 @@ interface StatusRailProps {
 
 function signalDotClass(tone: HealthSignal['tone']): string {
   if (tone === 'ok') return 'bg-ok';
-  if (tone === 'bad') return 'bg-red-400';
+  if (tone === 'bad') return 'bg-bad';
   return 'bg-forge';
 }
 
