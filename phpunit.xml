@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    PHPUnit 9.6 — not 10 or later. The WordPress test suite that these tests run
+    against (every case extends WP_UnitTestCase) still targets PHPUnit 9; on
+    PHPUnit 10 its compat layer fatals on classes such as
+    PHPUnit\Framework\Error\Deprecated, which that release removed.
+-->
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
     bootstrap="tests/bootstrap.php"
     colors="true"
+    beStrictAboutOutputDuringTests="true"
+    beStrictAboutTestsThatDoNotTestAnything="true"
     failOnWarning="true"
     failOnRisky="true"
-    failOnNotice="true"
-    failOnDeprecation="true"
-    cacheDirectory=".phpunit.cache"
+    cacheResultFile=".phpunit.cache/result"
 >
     <testsuites>
         <testsuite name="unit">
@@ -22,13 +28,10 @@
         </testsuite>
     </testsuites>
 
-    <source>
+    <coverage>
         <include>
             <directory suffix=".php">wordpress/wpforge/src</directory>
         </include>
-    </source>
-
-    <coverage>
         <report>
             <html outputDirectory="build/coverage"/>
             <text outputFile="php://stdout" showUncoveredFiles="false"/>
