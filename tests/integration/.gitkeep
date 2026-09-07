@@ -1,0 +1,4 @@
+Integration tests live here. They require a WordPress test installation
+(see docs/CONTRIBUTING notes in CONTRIBUTING.md) and are run with:
+
+    composer test:integration

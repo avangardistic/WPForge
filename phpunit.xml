@@ -4,12 +4,11 @@
     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
     bootstrap="tests/bootstrap.php"
     colors="true"
-    convertDeprecationsToExceptions="true"
-    convertWarningsToExceptions="true"
-    convertErrorsToExceptions="true"
     failOnWarning="true"
     failOnRisky="true"
-    verbose="true"
+    failOnNotice="true"
+    failOnDeprecation="true"
+    cacheDirectory=".phpunit.cache"
 >
     <testsuites>
         <testsuite name="unit">
@@ -23,10 +22,13 @@
         </testsuite>
     </testsuites>
 
-    <coverage>
+    <source>
         <include>
             <directory suffix=".php">wordpress/wpforge/src</directory>
         </include>
+    </source>
+
+    <coverage>
         <report>
             <html outputDirectory="build/coverage"/>
             <text outputFile="php://stdout" showUncoveredFiles="false"/>
