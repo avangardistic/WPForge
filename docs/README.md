@@ -30,6 +30,7 @@ WordPress site.
 |---|---|
 | [Troubleshooting](TROUBLESHOOTING.md) | 404s, 401s, 403s, rate limits, fatals |
 | [Removal](REMOVAL.md) | Uninstall and what it deletes |
+| [Final Audit](FINAL-AUDIT.md) | Security/UI/test audit and release readiness |
 
 ## Quick start
 
