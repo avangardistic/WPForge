@@ -81,8 +81,13 @@ class Plugin
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_filter('rest_authentication_errors', [$this, 'authenticateRestRequest']);
 
+        // Register the wp-admin UI right away (at plugins_loaded) instead of
+        // deferring to admin_init: WP fires the 'admin_menu' action while it
+        // loads wp-admin/menu.php, which happens BEFORE admin_init, so any
+        // admin_menu listener added during admin_init would never run.
         if (is_admin()) {
-            add_action('admin_init', [$this, 'adminInit']);
+            $admin = new \WPForge\Admin\AdminUI();
+            $admin->register();
         }
     }
 
@@ -178,12 +183,6 @@ class Plugin
     public function deactivate(): void
     {
         flush_rewrite_rules();
-    }
-
-    public function adminInit(): void
-    {
-        $admin = new \WPForge\Admin\AdminUI();
-        $admin->register();
     }
 
     /* ------------------------------------------------------------------ */

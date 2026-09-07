@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { GithubIcon } from 'lucide-react';
 import { ActivityStream } from './components/ActivityStream';
 import { ConnectionModal } from './components/ConnectionModal';
 import {
@@ -251,6 +252,21 @@ export function App({ streamLive = true }: AppProps) {
           <MobileStatusStrip signals={signals} />
 
           {renderMain()}
+
+          <footer className="flex flex-shrink-0 items-center justify-center">
+            <a
+              href="https://github.com/avangardistic/WPForge"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="group inline-flex items-center gap-1.5 rounded-sm text-[10px] text-muted/70 transition-colors duration-150 ease-out hover:text-ink focus:outline-none focus-visible:ring-1 focus-visible:ring-forge">
+              <GithubIcon
+                className="h-3 w-3 text-muted/50 transition-colors duration-150 group-hover:text-ink"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              WPForge by Hossein Parasteh
+            </a>
+          </footer>
         </main>
       </div>
 

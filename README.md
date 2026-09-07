@@ -152,6 +152,13 @@ npm start
 - MySQL/MariaDB
 - HTTPS recommended
 
+## Author
+
+WPForge is developed and maintained by **Hossein Parasteh**:
+
+- 📦 Repository: [github.com/avangardistic/WPForge](https://github.com/avangardistic/WPForge)
+- 👤 GitHub: [avangardistic](https://github.com/avangardistic)
+
 ## License
 
 MIT License — see [LICENSE](LICENSE) file.
