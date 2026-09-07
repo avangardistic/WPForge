@@ -1,12 +1,12 @@
-=== WPForge ===
+=== WPForge - AI Remote Control Bridge ===
 Contributors: avangardistic
-Tags: api, rest-api, ai, remote-control, elementor
+Tags: api, rest-api, ai, remote-control, elementor, development, debugging
 Requires at least: 6.0
-Tested up to: 6.5
+Tested up to: 7.1
 Requires PHP: 8.1
 Stable tag: 1.0.0
-License: MIT
-License URI: https://opensource.org/licenses/MIT
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 AI-Powered WordPress Remote Control & Development Bridge.
 

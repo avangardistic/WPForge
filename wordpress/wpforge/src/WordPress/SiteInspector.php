@@ -193,8 +193,13 @@ class SiteInspector
 
     private function getWidgets(): array
     {
-        $sidebars = wp_get_sidebars_widgets();
+        // Use get_option() instead of wp_get_sidebars_widgets() for WordPress.org compliance
+        $sidebars = get_option('sidebars_widgets', []);
         $result   = [];
+
+        if (!is_array($sidebars)) {
+            return $result;
+        }
 
         foreach ($sidebars as $sidebar => $widgets) {
             if ($sidebar === 'wp_inactive_widgets' || empty($widgets)) {

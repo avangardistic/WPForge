@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: WPForge
+ * Plugin Name: WPForge - AI Remote Control Bridge
  * Plugin URI: https://github.com/avangardistic/WPForge
- * Description: AI-Powered WordPress Remote Control & Development Bridge
+ * Description: AI-Powered WordPress Remote Control & Development Bridge for site inspection, content management, and diagnostics.
  * Version: 1.0.0
  * Author: Hossein Parasteh
  * Author URI: https://github.com/avangardistic
@@ -10,10 +10,11 @@
  * Requires WP: 6.0
  * Text Domain: wpforge
  * Domain Path: /languages
- * Network: false
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
  * @package WPForge
- * @license MIT
+ * @license GPL-2.0-or-later
  */
 
 if (!defined('ABSPATH')) {
