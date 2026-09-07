@@ -1,32 +1,44 @@
-```
-# Build artifacts
-wordpress/wpforge/assets/
-
-# Dependencies
-node_modules/
-package-lock.json
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-.idea/
-
-# Logs and temp files
+# Examples and common files for WordPress projects
+wp-content/cache/
+wp-content/uploads/
 *.log
 *.tmp
+.DS_Store
+Thumbs.db
+node_modules/
+vendor/
+composer.lock
+wp-config.php
+wp-content/backup-db/
+wp-content/upgrade/
+.sass-cache/
 *.swp
-
-# Python
+*.swo
+.env
+.env.local
+.env.*
+coverage/
+htmlcov/
+.coverage
+.pytest_cache/
+.mypy_cache/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Compressed files
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+dist/
+build/
+target/
+.gradle/
+.julia/
+zig*/
+julia-*/
 *.zip
 *.gz
 *.tar
@@ -45,4 +57,9 @@ __pycache__/
 *.Z
 *.lz
 *.lzo
-```
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+.vscode/
+.idea/
