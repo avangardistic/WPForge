@@ -58,13 +58,15 @@ Leave them false unless something outside WordPress genuinely needs them; a publ
 
 ## Filesystem
 
-`Security\PathValidator` resolves every path with `realpath()` and rejects it unless
-the result is inside the configured root. Independently of the root, these patterns
-are always refused:
+`Filesystem\SecurityGuard` (used by the `/files/*` routes) resolves every path with
+`realpath()` and rejects it unless the result is inside the configured root.
+`Security\PathValidator` applies the same rules and is available to other callers.
+Independently of the root, these are always refused:
 
 ```
-../  and ..\      /etc/  /proc/  /sys/  /dev/
-*/wp-config.php   */.htaccess
+..            any traversal that would climb above the root (refused, not clamped)
+/etc/  /proc/  /sys/  /dev/
+wp-config.php   wp-config-sample.php   .htaccess   .env
 ```
 
 Writes and deletes each require their own flag (`allow_writes`, `allow_deletes`),

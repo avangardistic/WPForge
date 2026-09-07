@@ -27,6 +27,8 @@ class PathValidator
                 '/^\/dev\//',
                 '/\/wp-config\.php$/',
                 '/\/\.htaccess$/',
+                '/\/wp-config-sample\.php$/',
+                '/\/\.env$/',
             ];
     }
 
@@ -40,8 +42,14 @@ class PathValidator
         $normalized = $this->normalizePath($path);
 
         // Check forbidden patterns
+        // Match against a leading-slash form. The patterns are written to anchor
+        // on a separator ("/^\/etc\//", "/\/wp-config\.php$/"), but normalisation
+        // strips the leading slash, so matching the bare relative path would let
+        // every one of them silently never fire.
+        $candidate = '/' . $normalized;
+
         foreach ($this->forbiddenPatterns as $pattern) {
-            if (preg_match($pattern, $normalized)) {
+            if (preg_match($pattern, $candidate)) {
                 throw new \RuntimeException('Path contains forbidden pattern: ' . $path);
             }
         }
@@ -85,21 +93,31 @@ class PathValidator
     }
 
     /**
-     * Normalize a path: remove leading slashes, collapse separators, resolve . and ..
+     * Normalise a relative path: collapse separators and resolve "." and "..".
+     *
+     * A ".." that would climb above the root is a traversal attempt, not
+     * something to silently clamp: rewriting "../../etc/passwd" to
+     * "<root>/etc/passwd" would hand the caller a different file than the one
+     * they asked for and leave no signal that anything was refused.
+     *
+     * @throws \RuntimeException if the path tries to escape the root.
      */
-    public function normalizePath(string $path): string
+    private function normalizePath(string $path): string
     {
+        $path = str_replace(chr(92), '/', $path);
         $path = ltrim($path, '/');
         $path = preg_replace('#/+#', '/', $path);
 
-        $parts = explode('/', $path);
         $resolved = [];
 
-        foreach ($parts as $part) {
+        foreach (explode('/', $path) as $part) {
             if ($part === '.' || $part === '') {
                 continue;
             }
             if ($part === '..') {
+                if ($resolved === []) {
+                    throw new \RuntimeException('Path escapes the allowed root: ' . $path);
+                }
                 array_pop($resolved);
                 continue;
             }

@@ -61,7 +61,7 @@ curl -X DELETE -u "$USER:$APP_PASS" \
 
 ## Path validation
 
-`Security\PathValidator` normalises the path, resolves it with `realpath()`, and
+`Filesystem\SecurityGuard` normalises the path, resolves it with `realpath()`, and
 rejects the request unless the result is inside the root. Independently of the
 root, these are always refused:
 

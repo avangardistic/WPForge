@@ -7,6 +7,25 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Security
+- **`wp-config.php` was readable through `GET /files/read`.** The deny rules
+  (`/\/wp-config\.php$/`, `/\/\.htaccess$/`, `/^\/etc\//` and the rest) are
+  written to anchor on a separator, but `normalizePath()` strips the leading
+  slash before they run, so a request for `wp-config.php` normalised to
+  `wp-config.php` with no `/` in front and matched nothing — every one of those
+  rules was dead. `Filesystem\SecurityGuard`, which is what the `/files/*`
+  routes actually use, did not carry the `wp-config.php` rule at all. Since the
+  sandbox root defaults to `ABSPATH` and the read endpoints gate only on
+  `is_user_logged_in()`, any authenticated user of any role could read the
+  database credentials and authentication salts. Patterns are now matched
+  against a leading-slash form so they fire as written, `SecurityGuard` carries
+  the same protected-file list as `PathValidator`, and both also refuse
+  `wp-config-sample.php` and `.env`.
+- Path traversal is now **refused rather than silently clamped**. A `..` that
+  climbed above the root used to be absorbed, so `../../etc/passwd` resolved to
+  `<root>/etc/passwd` and the caller was handed a different file with no error.
+  Containment held, but nothing was reported. `normalizePath()` now throws.
+  This is what the repository's own `PathTraversalTest` already asserted; those
+  two tests had never been run.
 - `GET /status` and `GET /health` are no longer reachable without authentication.
   Their `permission_callback` returned the *string* `'is_user_logged_in'` rather
   than calling it; WordPress treats a non-empty string as truthy, so both
