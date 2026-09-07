@@ -7,6 +7,7 @@ Requires PHP: 8.1
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Donate link: https://github.com/sponsors/avangardistic
 
 AI-Powered WordPress Remote Control & Development Bridge.
 
@@ -79,3 +80,10 @@ You can delete API tokens or revoke Application Passwords from the "Connect to A
 * Backup management
 * Comprehensive audit logging
 * Uninstall cleanup routine
+
+== Screenshots ==
+
+== Upgrade Notice ==
+
+= 1.0.0 =
+Initial release of WPForge - AI-powered WordPress remote control bridge.
