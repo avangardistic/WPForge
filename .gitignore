@@ -1,9 +1,29 @@
-```
-# WordPress specific ignores
-wordpress/wpforge/languages/*.pot
-wordpress/wpforge/languages/.gitkeep
+# Dependencies
+/vendor/
+node_modules/
+venv/
+.venv/
 
-# Compiled and build artifacts
+# Environment and secrets — never commit these
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+cookies.txt
+wpcookies.txt
+
+# Scratch / agent working directories
+.freebuff/
+.scratch/
+tmp/
+
+# Build and distribution artifacts
+/build/
+dist/
+*.zip
+
+# Compiled output
 *.pyc
 __pycache__/
 *.o
@@ -11,16 +31,6 @@ __pycache__/
 *.exe
 *.dll
 *.so
-*.a
-*.out
-
-# Dependencies
-node_modules/
-venv/
-.venv/
-.env
-.env.local
-.env.*
 
 # Logs and temp files
 *.log
@@ -30,25 +40,20 @@ venv/
 # Editors
 .vscode/
 .idea/
+*.sublime-*
 
 # Coverage and testing
+.phpunit.result.cache
 .coverage
 coverage/
 htmlcov/
-
-# Distribution packages
-dist/
-build/
-target/
-.gradle/
-
-# Python specific
-.mypy_cache/
 .pytest_cache/
-*.pyc
-__pycache__/
+.mypy_cache/
+
+# WordPress specific
+wordpress/wpforge/languages/*.pot
 
 # System files
 .DS_Store
 Thumbs.db
-```
+.phpunit.cache/

@@ -1,41 +1,84 @@
 # Contributing to WPForge
 
-## Development Setup
+## Development setup
 
 ```bash
 git clone https://github.com/avangardistic/WPForge.git
-cd wpforge
+cd WPForge
 composer install
 ```
 
-## Running Tests
+For the MCP server and dashboard:
 
 ```bash
-# Set WP_TESTS_DIR to your WordPress test installation
-export WP_TESTS_DIR=/path/to/wordpress-tests-lib
-
-composer test
-composer test:unit
-composer test:security
+cd mcp && npm install && npm run build
+cd ../UIUX && npm install
 ```
 
-## Code Standards
+## Running tests
 
-- Follow WordPress Coding Standards (WPCS)
-- Use PSR-12 for new classes
-- All public methods must have PHPDoc blocks
-- No TODO or FIXME in production code
-- All mutations must be logged
+The unit and security suites run standalone. The integration suite needs a
+WordPress test installation:
 
-## Pull Request Process
+```bash
+export WP_TESTS_DIR=/path/to/wordpress-tests-lib
 
-1. Fork the repository
-2. Create a feature branch
-3. Write tests for new functionality
-4. Ensure all tests pass
-5. Update documentation
-6. Submit a pull request
+composer test              # everything
+composer test:unit
+composer test:security
+composer test:integration  # requires WP_TESTS_DIR
+```
 
-## Security
+## Linting
 
-If you discover a security vulnerability, please report it responsibly via GitHub Issues (private) or email.
+```bash
+composer lint       # PHPCS against phpcs.xml
+composer lint:fix   # PHPCBF, auto-fixable rules only
+```
+
+CI runs `lint`, the unit and security suites, and a TypeScript build of `mcp/` on
+every push and pull request. Run them locally before opening a PR.
+
+## Code standards
+
+- WordPress Coding Standards (WPCS), PSR-12 for new classes
+- PHP 8.1 as the floor — typed properties and `mixed` are fine
+- PHPDoc on every public method
+- No `TODO` or `FIXME` in committed code; `composer validate` fails on them
+- Every mutating endpoint logs through `Logging\Manager`
+- Every mutating endpoint checks a capability inside the handler, not only in
+  `permission_callback`
+
+## Adding an endpoint
+
+1. Add the service logic as a class under `wordpress/wpforge/src/`.
+2. Register the route in the matching file under `wordpress/wpforge/routes/`.
+3. Gate authentication in `permission_callback` and authorization with
+   `current_user_can()` inside the handler.
+4. Return through `API\Response` so the envelope and `request_id` stay consistent.
+5. Add a test — a security test if the endpoint touches files, SQL or capabilities.
+6. Document it in `docs/API_REFERENCE.md`.
+
+## Never commit
+
+- Credentials, cookies, `.env` files, or tokens
+- Captured HTML, logs or database dumps from a real site
+- Scratch or agent working directories
+
+If something sensitive does land in a commit, say so in the PR rather than
+force-pushing over it quietly — the history may need purging.
+
+## Pull requests
+
+1. Branch from `main`.
+2. Keep the change focused; separate refactors from behaviour changes.
+3. Tests pass and lint is clean.
+4. Update the docs and `CHANGELOG.md` under **Unreleased**.
+5. Open the PR with a description of what changed and why.
+
+## Reporting security issues
+
+**Do not open a public issue.** Use GitHub's private vulnerability reporting:
+<https://github.com/avangardistic/WPForge/security/advisories>
+
+See [SECURITY.md](SECURITY.md).

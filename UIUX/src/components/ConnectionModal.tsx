@@ -26,7 +26,7 @@ interface ConnectionModalProps {
   onClose: () => void;
 }
 
-const DEFAULT_HOST = 'https://neginhafari.ir';
+const DEFAULT_HOST = 'https://example.com';
 
 export function ConnectionModal({
   open,

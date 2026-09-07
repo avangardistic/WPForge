@@ -9,7 +9,7 @@
     "url": "https://github.com/avangardistic/WPForge"
   },
   "homepage": "https://github.com/avangardistic/WPForge",
-  "license": "MIT",
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "dev": "npx vite",
     "build": "npx vite build",
@@ -36,7 +36,7 @@
     "typescript": "^5.5.4",
     "vite": "^5.2.0",
     "tailwindcss": "3.4.17",
-    "autoprefixer": "latest",
-    "postcss": "latest"
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47"
   }
 }

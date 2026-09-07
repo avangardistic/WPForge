@@ -67,6 +67,21 @@ Base URL: `https://your-site.com/wp-json/wpforge/v1/`
 - `POST /users` — Create user
 - `PUT /users/{id}` — Update user
 
+### Menus
+- `GET /menus` — List navigation menus
+- `GET /menus/{id}` — Get one menu with its items
+- `GET /menus/locations` — Registered theme menu locations
+
+### Themes
+- `GET /themes` — List installed themes
+- `GET /themes/{stylesheet}` — Get one theme
+- `POST /themes/activate` — Activate a theme (`switch_themes`)
+
+### Plugins
+- `GET /plugins` — List installed plugins
+- `POST /plugins/activate` — Activate a plugin (`activate_plugins`)
+- `POST /plugins/deactivate` — Deactivate a plugin (`activate_plugins`)
+
 ### Elementor
 - `GET /elementor/status` — Elementor capabilities
 - `GET /elementor/documents` — List documents
@@ -92,9 +107,10 @@ Base URL: `https://your-site.com/wp-json/wpforge/v1/`
 - `GET /backup/{id}` — Get backup info
 - `DELETE /backup/{id}` — Delete backup
 
-### Cache
-- `POST /cache/flush` — Flush all caches
-- `GET /cache/status` — Cache status
+### Tokens
+- `GET /tokens` — List the current user's API tokens
+- `POST /tokens` — Create a token (returns the plaintext once)
+- `DELETE /tokens/{id}` — Revoke a token
 
 ### Diagnostics
 - `GET /diagnostics` — Full diagnostic report

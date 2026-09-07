@@ -6,7 +6,7 @@
         "name": "Hossein Parasteh",
         "url": "https://github.com/avangardistic/WPForge"
     },
-    "license": "MIT",
+    "license": "GPL-2.0-or-later",
     "homepage": "https://github.com/avangardistic/WPForge",
     "repository": {
         "type": "git",

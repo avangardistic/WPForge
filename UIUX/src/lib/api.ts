@@ -6,7 +6,7 @@
  */
 
 export interface WpForgeConnection {
-  /** Site origin, e.g. https://neginhafari.ir */
+  /** Site origin, e.g. https://example.com */
   host: string;
   /** WordPress user login. */
   username: string;

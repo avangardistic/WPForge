@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a capability or endpoint
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the task, not the solution — it often has a shorter path.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: Endpoint, method, request and response shape, if you have one in mind.
+
+  - type: textarea
+    id: security
+    attributes:
+      label: Security considerations
+      description: Which capability should gate it? Should it sit behind `developer_mode`?
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you have tried

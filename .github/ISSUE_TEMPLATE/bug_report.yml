@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in WPForge behaves incorrectly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never paste an Application Password, API token, cookie, or database dump
+        into an issue.** Redact hostnames if the site is not public.
+
+        For a security vulnerability, stop and use
+        [private reporting](https://github.com/avangardistic/WPForge/security/advisories)
+        instead.
+
+  - type: input
+    id: request_id
+    attributes:
+      label: request_id
+      description: The `request_id` from the response body, if you have one. It ties your report to a server-side log line.
+    validations:
+      required: false
+
+  - type: input
+    id: endpoint
+    attributes:
+      label: Endpoint
+      placeholder: "POST /wp-json/wpforge/v1/files/write"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: response
+    attributes:
+      label: Response body
+      description: Redacted. The `error.code` matters most.
+      render: json
+
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions
+      value: |
+        - WPForge:
+        - WordPress:
+        - PHP:
+        - Web server:
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Relevant configuration
+      description: e.g. developer_mode, allow_filesystem_writes, filesystem_root
