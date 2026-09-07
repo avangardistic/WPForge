@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 #
-# Install WordPress and its PHPUnit test library so the integration and unit
-# suites can run. Mirrors the environment `composer test` expects.
+# Install WordPress and its PHPUnit test library so the test suites can run.
+# Every suite extends WP_UnitTestCase, so this is a prerequisite for all of them.
 #
 # Usage: tools/ci/install-wp-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version]
+#
+# Example:
+#   tools/ci/install-wp-tests.sh wordpress_test root root 127.0.0.1 6.7
 
 set -euo pipefail
 
@@ -17,22 +20,32 @@ WP_TESTS_DIR=${WP_TESTS_DIR:-/tmp/wordpress-tests-lib}
 WP_CORE_DIR=${WP_CORE_DIR:-/tmp/wordpress}
 
 if [ "$WP_VERSION" = "latest" ]; then
-    WP_VERSION=$(curl -sS https://api.wordpress.org/core/version-check/1.7/ \
-        | sed -n 's/.*"version":"\([0-9.]*\)".*/\1/p' | head -n1)
+    WP_VERSION=$(curl -fsS https://api.wordpress.org/core/stable-check/1.0/ \
+        | tr ',' '\n' | grep '"latest"' | cut -d'"' -f2 | head -n1)
+    if [ -z "$WP_VERSION" ]; then
+        echo "Could not resolve the latest WordPress version." >&2
+        exit 1
+    fi
     echo "Resolved latest WordPress to ${WP_VERSION}"
 fi
 
+# The release tarball is named for the two-part version (wordpress-6.7.tar.gz),
+# but wordpress-develop tags are always three-part (6.7.0). Derive both.
+DEVELOP_TAG="$WP_VERSION"
+if [[ "$DEVELOP_TAG" =~ ^[0-9]+\.[0-9]+$ ]]; then
+    DEVELOP_TAG="${DEVELOP_TAG}.0"
+fi
+
 install_wp() {
-    if [ -d "$WP_CORE_DIR" ]; then
+    if [ -d "${WP_CORE_DIR}/wp-includes" ]; then
         echo "WordPress already present at ${WP_CORE_DIR}"
         return
     fi
-    mkdir -p "$WP_CORE_DIR"
+
     echo "Downloading WordPress ${WP_VERSION}..."
-    curl -sS -o /tmp/wordpress.tar.gz "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz"
+    mkdir -p "$WP_CORE_DIR"
+    curl -fsSL -o /tmp/wordpress.tar.gz "https://wordpress.org/wordpress-${WP_VERSION}.tar.gz"
     tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C "$WP_CORE_DIR"
-    curl -sS -o "${WP_CORE_DIR}/wp-content/db.php" \
-        https://raw.githubusercontent.com/markoheijnen/wp-mysqli/master/db.php
 }
 
 install_test_suite() {
@@ -40,13 +53,13 @@ install_test_suite() {
         echo "Test suite already present at ${WP_TESTS_DIR}"
         return
     fi
-    mkdir -p "$WP_TESTS_DIR"
 
-    # The test library only exists in the develop repository, not in the release tarball.
-    echo "Downloading the WordPress ${WP_VERSION} test library..."
-    curl -sS -o /tmp/wp-develop.tar.gz \
-        "https://github.com/WordPress/wordpress-develop/archive/refs/tags/${WP_VERSION}.tar.gz"
-    mkdir -p /tmp/wp-develop
+    # The PHPUnit test library ships only in the develop repository, never in
+    # the release tarball.
+    echo "Downloading the WordPress ${DEVELOP_TAG} test library..."
+    mkdir -p "$WP_TESTS_DIR" /tmp/wp-develop
+    curl -fsSL -o /tmp/wp-develop.tar.gz \
+        "https://github.com/WordPress/wordpress-develop/archive/refs/tags/${DEVELOP_TAG}.tar.gz"
     tar --strip-components=1 -zxmf /tmp/wp-develop.tar.gz -C /tmp/wp-develop
 
     cp -r /tmp/wp-develop/tests/phpunit/includes "${WP_TESTS_DIR}/includes"
@@ -54,22 +67,26 @@ install_test_suite() {
     cp /tmp/wp-develop/wp-tests-config-sample.php "${WP_TESTS_DIR}/wp-tests-config.php"
 
     local config="${WP_TESTS_DIR}/wp-tests-config.php"
-    # BSD/GNU sed differ on -i; write through a temp file instead.
+    # GNU and BSD sed disagree about -i, so write through a temporary file.
     sed \
         -e "s#dirname( __FILE__ ) . '/src/'#'${WP_CORE_DIR}/'#" \
         -e "s/youremptytestdbnamehere/${DB_NAME}/" \
         -e "s/yourusernamehere/${DB_USER}/" \
         -e "s/yourpasswordhere/${DB_PASS}/" \
-        -e "s|localhost|${DB_HOST}|" \
+        -e "s/'localhost'/'${DB_HOST}'/" \
         "$config" > "${config}.tmp"
     mv "${config}.tmp" "$config"
 }
 
 create_db() {
     echo "Creating database ${DB_NAME} on ${DB_HOST}..."
-    mysqladmin create "$DB_NAME" --user="$DB_USER" --password="$DB_PASS" \
-        --host="${DB_HOST%%:*}" --protocol=tcp 2>/dev/null \
-        || echo "Database already exists; continuing."
+    if mysqladmin create "$DB_NAME" \
+        --user="$DB_USER" --password="$DB_PASS" \
+        --host="${DB_HOST%%:*}" --protocol=tcp 2>/dev/null; then
+        echo "Database created."
+    else
+        echo "Database already exists (or could not be created); continuing."
+    fi
 }
 
 install_wp
@@ -77,6 +94,6 @@ install_test_suite
 create_db
 
 echo
-echo "Done. Export these before running PHPUnit:"
-echo "  export WP_TESTS_DIR=${WP_TESTS_DIR}"
-echo "  export WP_CORE_DIR=${WP_CORE_DIR}"
+echo "Ready. PHPUnit expects:"
+echo "  WP_TESTS_DIR=${WP_TESTS_DIR}"
+echo "  WP_CORE_DIR=${WP_CORE_DIR}"
