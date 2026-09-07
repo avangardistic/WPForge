@@ -43,7 +43,39 @@ The menu has two pages:
 1. **Dashboard** - Shows plugin version, REST API status, developer mode status, and active credentials count
 2. **Connect to AI** - Generate Application Passwords or API tokens, copy MCP client configurations (Claude Desktop, Cursor, CLI), and test your connection
 
+= Is WPForge secure? =
+
+Yes. WPForge uses WordPress Application Passwords for authentication, implements strict capability checks (requires `manage_options`), includes path traversal protection for filesystem operations, and maintains comprehensive audit logs of all API requests.
+
+= What is Developer Mode? =
+
+Developer Mode enables additional diagnostic endpoints and detailed error reporting useful during development. It can be toggled from the WPForge Dashboard in wp-admin. For production sites, it's recommended to keep Developer Mode disabled.
+
+= Can I use WPForge with any AI agent? =
+
+WPForge is designed to be MCP (Model Context Protocol) compatible, making it usable with AI agents that support MCP. You can generate credentials and copy pre-configured MCP client settings for Claude Desktop, Cursor, or CLI tools from the "Connect to AI" page.
+
+= Does WPForge send data to external servers? =
+
+No. WPForge operates entirely within your WordPress installation. It does not make outbound connections, send telemetry, or include any "powered by" links. All API communication happens between your AI agent and your WordPress site directly.
+
+= How do I revoke access? =
+
+You can delete API tokens or revoke Application Passwords from the "Connect to AI" page in the WPForge admin UI. This immediately invalidates the credentials and prevents further API access.
+
 == Changelog ==
 
 = 1.0.0 =
 * Initial release
+* Secure REST API for AI-driven WordPress management
+* Dashboard with API status and developer mode toggle
+* Credential generation for Application Passwords and API tokens
+* MCP client configuration for Claude Desktop, Cursor, and CLI
+* Site inspection and diagnostics endpoints
+* Content management (posts, pages, custom post types, taxonomies)
+* Elementor integration
+* Filesystem access with security protections
+* Database inspection capabilities
+* Backup management
+* Comprehensive audit logging
+* Uninstall cleanup routine
