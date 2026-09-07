@@ -58,10 +58,12 @@ All notable changes to this project are documented here. The format follows
   configuration reference described keys the plugin does not read.
   `Config` now loads `config/defaults.php`, with the inline array retained as a
   fallback for partial installs.
-- `phpunit.xml` used PHPUnit 9 attributes (`convertDeprecationsToExceptions`,
-  `convertWarningsToExceptions`, `convertErrorsToExceptions`, `verbose`) that
-  PHPUnit 10 removed, so `composer test` failed to start against the required
-  `phpunit/phpunit ^10`. Migrated to the PHPUnit 10 schema.
+- `composer.json` required `phpunit/phpunit ^10` while `phpunit.xml` was written
+  for PHPUnit 9, so `composer test` failed to start. Resolved in favour of
+  **PHPUnit 9.6**, not 10: every suite extends `WP_UnitTestCase`, and the
+  WordPress test library still targets PHPUnit 9 — on 10 it fatals on
+  `PHPUnit\Util\Test::parseTestMethodAnnotations()` and on the
+  `PHPUnit\Framework\Error\*` classes that release removed.
 - The `integration` test suite pointed at a directory that did not exist.
 - Licensing was contradictory: `LICENSE` and the Composer/npm manifests said MIT
   while the plugin headers and `README.txt` declared GPLv2-or-later. Unified on
