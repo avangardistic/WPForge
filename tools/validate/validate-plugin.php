@@ -101,7 +101,7 @@ preg_match('/^\s*\*\s*Version:\s*(.+)$/m', $mainContent, $headerVersion);
 preg_match('/WPFORGE_VERSION\x27,\s*\x27([^\x27]+)\x27/', $mainContent, $constVersion);
 
 $stableTag = [];
-$readmeTxt = $pluginDir . '/README.txt';
+$readmeTxt = $pluginDir . '/readme.txt';
 if (file_exists($readmeTxt)) {
     preg_match('/^Stable tag:\s*(.+)$/m', file_get_contents($readmeTxt), $stableTag);
 }
@@ -109,7 +109,7 @@ if (file_exists($readmeTxt)) {
 $versions = array_filter([
     'plugin header'         => isset($headerVersion[1]) ? trim($headerVersion[1]) : null,
     'WPFORGE_VERSION'       => $constVersion[1] ?? null,
-    'README.txt stable tag' => isset($stableTag[1]) ? trim($stableTag[1]) : null,
+    'readme.txt stable tag' => isset($stableTag[1]) ? trim($stableTag[1]) : null,
 ]);
 
 if (count(array_unique($versions)) > 1) {

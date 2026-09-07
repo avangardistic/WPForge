@@ -4,7 +4,7 @@
 
 | Component | Minimum | Notes |
 |-----------|---------|-------|
-| WordPress | 6.0     | Tested up to 7.1 |
+| WordPress | 6.0     | Tested up to 6.7 |
 | PHP       | 8.1     | Typed properties and `mixed` are used throughout |
 | Database  | MySQL 5.7 / MariaDB 10.3 | Two custom tables are created |
 | Transport | HTTPS   | Required in practice — Application Passwords travel in the `Authorization` header |

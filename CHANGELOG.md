@@ -147,6 +147,16 @@ All notable changes to this project are documented here. The format follows
 - Pinned `autoprefixer` and `postcss` in `UIUX/package.json`, which were floating
   on `latest`.
 
+### WordPress.org readiness
+- `README.txt` renamed to `readme.txt` (lowercase), which is the filename the
+  plugin directory's readme parser expects.
+- `Tested up to` corrected from `7.1` — not a released WordPress version, it was
+  carried over from a test environment — to `6.7`, and the same claim fixed in
+  the READMEs and docs.
+- Trimmed the readme tags to the five most relevant.
+- Added a dashboard (UIUX) build job to CI: `tsc --noEmit`, ESLint, and a
+  production `vite build` now run on every push and pull request.
+
 ### UI/UX (dashboard)
 - Added semantic colour tokens (`bad`, `warn`, `info`) to the Tailwind config and
   replaced ~25 raw `red-400`/`red-500` utilities with the `bad` token, so the

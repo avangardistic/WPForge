@@ -42,7 +42,7 @@ curl -u "admin:xxxx xxxx xxxx xxxx xxxx xxxx" \
 
 ## Requirements
 
-- WordPress 6.0+ (tested to 7.1)
+- WordPress 6.0+ (tested to 6.7)
 - PHP 8.1+
 - MySQL 5.7+ / MariaDB 10.3+
 - HTTPS
