@@ -448,7 +448,12 @@ class AdminUI
      */
     private function probeEndpoint(string $route, ?string $basicAuth): array
     {
-        $args = ['timeout' => 15, 'redirection' => 2];
+        $args = [
+            'timeout'     => 15,
+            'redirection' => 2,
+            'cookies'     => $_COOKIE ?? [], // Pass current user's cookies for internal requests
+        ];
+        
         if ($basicAuth !== null) {
             $args['headers'] = ['Authorization' => 'Basic ' . base64_encode($basicAuth)];
         }
