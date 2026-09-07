@@ -63,8 +63,12 @@ final class WPForge_Plugin
 
     public function init(): void
     {
-        add_action('rest_api_init', [$this, 'registerRestRoutes']);
         $this->maybeInstall();
+
+        // Boot the full orchestrator (config, logging, bearer-token REST auth,
+        // and the wp-admin dashboard UI). Core\Plugin is the single place that
+        // wires those up; without it the admin menu and token auth never load.
+        \WPForge\Core\Plugin::getInstance()->init();
     }
 
     /**
@@ -81,14 +85,6 @@ final class WPForge_Plugin
             return;
         }
         $this->activate();
-    }
-
-    public function registerRestRoutes(): void
-    {
-        $routeFiles = glob(WPFORGE_PLUGIN_DIR . 'routes/*.php');
-        foreach ($routeFiles as $file) {
-            require_once $file;
-        }
     }
 
     public function activate(): void

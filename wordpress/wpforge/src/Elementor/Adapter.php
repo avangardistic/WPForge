@@ -120,14 +120,16 @@ class Adapter
         if (isset($data['elementor_data'])) {
             update_post_meta($id, '_elementor_data', wp_slash(wp_json_encode($data['elementor_data'])));
             update_post_meta($id, '_elementor_version', $this->version);
-        }
 
-        // Clear Elementor cache if available.
-        if ($this->available && method_exists('\\Elementor\\Plugin::$instance->files_manager', 'clear_cache')) {
-            try {
-                \Elementor\Plugin::$instance->files_manager->clear_cache();
-            } catch (\Throwable $e) {
-                // Non-critical — cache clear failed silently.
+            // Invalidate the post's compiled Elementor CSS so the frontend
+            // regenerates it on the next render. Without this, API-driven
+            // document edits leave stale/missing post-{id}.css files behind.
+            if (class_exists('\\Elementor\\Core\\Files\\CSS\\Post')) {
+                try {
+                    \Elementor\Core\Files\CSS\Post::create($id)->delete();
+                } catch (\Throwable $e) {
+                    // Non-critical — CSS will be regenerated on demand.
+                }
             }
         }
 

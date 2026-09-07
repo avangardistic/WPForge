@@ -49,3 +49,6 @@ desktop.ini
 # WPForge runtime
 wordpress/wpforge/logs/
 wordpress/wpforge/backups/
+
+# Local scratch / site tooling (not part of the product)
+.freebuff/
