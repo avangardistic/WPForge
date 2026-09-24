@@ -21,12 +21,12 @@ class SecurityGuardTest extends TestCase
         // Create test subdirectories
         mkdir($this->testRoot . '/subdir', 0755, true);
         file_put_contents($this->testRoot . '/test.txt', 'test content');
-        
+
         // Mock wp_normalize_path if not available
         if (!function_exists('wp_normalize_path')) {
             eval('function wp_normalize_path($path) { return str_replace("\\\\", "/", $path); }');
         }
-        
+
         $this->guard = new SecurityGuard($this->testRoot);
     }
 
@@ -39,7 +39,9 @@ class SecurityGuardTest extends TestCase
 
     private function deleteDir(string $dir): void
     {
-        if (!is_dir($dir)) return;
+        if (!is_dir($dir)) {
+            return;
+        }
         $files = array_diff(scandir($dir), ['.', '..']);
         foreach ($files as $file) {
             $path = $dir . '/' . $file;
