@@ -318,10 +318,10 @@ class AdminUI
         }
 
         $this->renderHeader('Connect to AI', 'Give an AI assistant secure access to this site');
-        
+
         // Render React app container
         echo '<div id="wpforge-react-root"></div>';
-        
+
         $this->renderFooter();
     }
 
@@ -453,7 +453,7 @@ class AdminUI
             'redirection' => 2,
             'cookies'     => $_COOKIE ?? [], // Pass current user's cookies for internal requests
         ];
-        
+
         if ($basicAuth !== null) {
             $args['headers'] = ['Authorization' => 'Basic ' . base64_encode($basicAuth)];
         }
