@@ -1,10 +1,5 @@
 # CLI AI Agent Prompt — WPForge: Full Branch/PR Audit, Merge & WordPress.org Release Readiness
 
-> نحوه استفاده: این فایل را با `claude` / `codex` / `gemini-cli` / هر CLI agent اجرا کنید، مثلاً:
-> `claude "$(cat AGENT-PROMPT-branch-pr-audit.md)"` یا در case Sensitivity: **high** (مجاز به force-push نیست؛ پاک‌سازی history نیازمند تأیید انسانی است).
-
----
-
 ## ROLE
 
 You are the senior release engineer and code auditor for the repository
