@@ -1,1 +1,34 @@
-(empty)
+# WPForge root ignore rules.
+#
+# This file previously contained the literal string "(empty)", which is how
+# mcp/node_modules (10,346 tracked files, ~121 MB, non-executable .bin shims)
+# ended up committed and broke the CI build ("tsc: Permission denied").
+# Keep this file real and reviewed.
+
+# Dependencies (any depth)
+node_modules/
+
+# Build output
+dist/
+/build/
+/coverage/
+
+# Environment & key material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Cookie jars & agent scratch (the class of files from the historical leak)
+cookies.txt
+*.cookies
+.freebuff/
+.agent/
+
+# Logs & caches
+*.log
+.phpunit.cache/
+.DS_Store
