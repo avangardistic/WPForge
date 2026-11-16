@@ -43,19 +43,37 @@ Audit decisions, reconciliations, and open choices. **No source code was changed
 - **Executed here:** everything listed in `TEST_REPORT.md` §2.1.
 - Historical FINAL-AUDIT items stay flagged unverified (live install, Plugin Check, MCP e2e, dashboard QA) — not re-claimed.
 
-## 5. Open decisions (need maintainer input before/during Phase 2)
+## 5. LOCKED decisions (Phase 2 approval, 2026-11-16 — no renegotiation)
 
-| # | Decision | Options | Audit recommendation |
-|---|----------|---------|----------------------|
-| O-1 | Dead security controls: **implement** vs **remove claims** | wire rate-limit/logging/kill-switch/IP-filter (SEC-01/02/04/05) vs delete from docs | **Implement** — mission fail-closed rule makes “documented but off” unacceptable for mutating controls |
-| O-2 | `wp_flush_cache` tool | implement gated `/cache/flush` vs remove tool | implement (cheap, `wp_cache_flush()` + `manage_options` + destructive flag) |
-| O-3 | MCP distribution | publish `@wpforge/mcp-server` to npm vs local-path snippet only | local-path first (no publish gate risk); revisit publishing — **publishing requires approval** |
-| O-4 | ~20 dead classes | wire / delete / quarantine | delete in Phase 2E after wiring decisions, list in DECISIONS update; `schemas/*.json` → either enforce as request validation or drop from README layout claims |
-| O-5 | Config UI | build Settings page (roadmap D2) vs document programmatic-only | build Settings page — CONFIGURATION.md already promises it |
-| O-6 | Dashboard embedded vs standalone | keep both (embedded Connect page + dev SPA) | keep both but fix asset pipeline (D1) |
-| O-7 | Version bump timing | 1.0.1 immediately after Phase 2 vs at release | at release (rule 15: one increment per release) |
-| O-8 | `.freebuff` incident follow-up | confirm credential rotation for affected production site | **maintainer out-of-band confirmation** — cannot be derived from repo |
-| O-9 | CI matrix target | stay WP 6.7 vs add 7.1 | add WP 7.1 before any `Tested up to: 7.1` claim |
+Maintainer's decision text, verbatim:
+
+| # | Locked decision (verbatim) |
+|---|----------------------------|
+| O-1 | **implement.** Wire the dead controls. No doc-honesty shortcut. |
+| O-2 | **implement `/cache/flush`**, gated `manage_options` + destructive flag. |
+| O-3 | **local-path only.** npm publish is a later approval gate. Not now. |
+| O-4 | **delete dead classes in 2E**, after wiring decisions. Keep a short list in DECISIONS.md. |
+| O-5 | **build the Settings page.** CONFIGURATION.md already promises it. |
+| O-6 | **keep both dashboards.** Fix the asset pipeline. |
+| O-7 | **version bump only at release.** |
+| O-8 | not relevant. Credentials not rotated. Don't nag about it. But verify the leaked creds still work as designed — meaning: confirm the auth path they belong to behaves correctly. That's the only thing you check. Nothing else. Maintainer rotates at the end. Ignore. |
+| O-9 | **add WP 7.1 to the CI matrix before any "Tested up to: 7.1" claim.** |
+
+Execution order is also locked (2A → 2B → 2C → 2D → 2E → 2F, no reordering, no rolling sub-phases together). Every Phase 2 sub-phase ends with a Persian report and stops for approval.
+
+### O-8 — the one permitted check (result, closed)
+
+The leaked credentials were `wordpress_logged_in_*` session cookies, i.e. they belong to **WordPress core cookie authentication**. Static verification against this codebase:
+
+- Zero cookie-auth code in the plugin: no `determine_current_user`, no `wp_validate_auth_cookie`, no auth-cookie handling (grep across `wordpress/wpforge` = 0 hits). The only `wp_set_current_user` calls follow a *successful Bearer* validation (`Core/Plugin.php:122`) and sit in the dead `Middleware/Auth`.
+- The plugin's sole auth hook, `rest_authentication_errors` (`Core/Plugin.php:85`): (1) returns any earlier `WP_Error` untouched, so core's REST cookie-nonce gate is preserved; (2) leaves already-logged-in (cookie) requests completely alone; (3) attempts Bearer only when nobody is logged in, `401` on invalid token.
+
+**Result:** the auth path these cookies belong to behaves correctly as designed — cookie-authenticated REST still passes core's nonce enforcement, then every route's `permission_callback`. The plugin neither weakens nor bypasses it. **O-8 closed.** Not mentioned again until the release gate; credential rotation is the maintainer's end-of-release action.
+
+### 2A audit exceptions (npm, `mcp/`)
+
+- **Production dependencies: 0 vulnerabilities** after in-range `npm audit fix` (commit `55d1141`; `package.json` byte-identical before/after, lockfile-only change, no new dependencies). Phase 1 had 8 prod findings (3 high: `zod` GHSA-mrhx-c7xc-m3w5, `follow-redirects` GHSA-mrwp-f3q8-3g9p, +1 high).
+- **Dev-only tooling: 20 findings remain (4 low, 16 moderate, 0 high)** — exclusively the jest/babel toolchain (`jest*`, `babel-*`, `ts-jest`, `minimatch`, `glob`, `deepmerge`, `test-exclude`). Not shipped, not in the MCP runtime path. Not fixed here because clearing them requires breaking major bumps (`npm audit fix --force`), outside the approved "existing bumps, no new dependencies" scope for 2A. **Re-evaluate at release** (and again if/when a test framework decision is revisited).
 
 ## 6. Non-decisions (explicitly out of Phase 1)
 

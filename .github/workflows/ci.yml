@@ -80,8 +80,26 @@ jobs:
       - name: Install the WordPress test environment
         run: |
           bash tools/ci/install-wp-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wordpress }}
-      - run: composer test:unit
-      - run: composer test:security
+      - name: Run unit tests
+        run: composer test:unit 2>&1 | tee "$RUNNER_TEMP/unit.out"
+      - name: Run security tests
+        run: composer test:security 2>&1 | tee "$RUNNER_TEMP/security.out"
+      - name: Publish test counts to step summary
+        if: always()
+        run: |
+          {
+            echo "### PHPUnit — WP ${{ matrix.wordpress }}, PHP ${{ matrix.php }}"
+            for suite in unit security; do
+              if [ -f "$RUNNER_TEMP/$suite.out" ]; then
+                echo "**${suite} suite**"
+                echo '```'
+                grep -E '^(Tests:|OK \(|[0-9]+\) )|FAILURES|ERRORS|Risky' "$RUNNER_TEMP/$suite.out" || echo "(no PHPUnit summary line found — see job log)"
+                echo '```'
+              else
+                echo "**${suite} suite**: did not run (step failed before start)"
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
 
   validate:
     name: Plugin validation
@@ -105,7 +123,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm install
+          cache: npm
+          cache-dependency-path: mcp/package-lock.json
+      # npm ci (not npm install): installs strictly from package-lock.json and
+      # recreates .bin shims with executable bits — the previous failure mode
+      # was committed node_modules with mode-644 shims (tsc: Permission denied).
+      - run: npm ci
       - run: npm run build
 
   ui:
