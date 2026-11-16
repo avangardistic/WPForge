@@ -70,6 +70,11 @@ The leaked credentials were `wordpress_logged_in_*` session cookies, i.e. they b
 
 **Result:** the auth path these cookies belong to behaves correctly as designed — cookie-authenticated REST still passes core's nonce enforcement, then every route's `permission_callback`. The plugin neither weakens nor bypasses it. **O-8 closed.** Not mentioned again until the release gate; credential rotation is the maintainer's end-of-release action.
 
+### 2A audit exceptions (npm, `mcp/`)
+
+- **Production dependencies: 0 vulnerabilities** after in-range `npm audit fix` (commit `55d1141`; `package.json` byte-identical before/after, lockfile-only change, no new dependencies). Phase 1 had 8 prod findings (3 high: `zod` GHSA-mrhx-c7xc-m3w5, `follow-redirects` GHSA-mrwp-f3q8-3g9p, +1 high).
+- **Dev-only tooling: 20 findings remain (4 low, 16 moderate, 0 high)** — exclusively the jest/babel toolchain (`jest*`, `babel-*`, `ts-jest`, `minimatch`, `glob`, `deepmerge`, `test-exclude`). Not shipped, not in the MCP runtime path. Not fixed here because clearing them requires breaking major bumps (`npm audit fix --force`), outside the approved "existing bumps, no new dependencies" scope for 2A. **Re-evaluate at release** (and again if/when a test framework decision is revisited).
+
 ## 6. Non-decisions (explicitly out of Phase 1)
 
 - No dependency upgrades (Dependabot remains owner; blocked on R2).
