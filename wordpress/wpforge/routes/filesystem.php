@@ -75,6 +75,14 @@ register_rest_route($ns, '/files/delete', [
         if (!current_user_can('edit_files')) {
             return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
+        // S3: irreversible file removal requires developer_mode + allow_destructive_operations.
+        if (!$config->allowDestructiveOperations()) {
+            return Response::error(
+                'DESTRUCTIVE_OPERATIONS_DISABLED',
+                'Destructive operations are disabled. Enable developer_mode and allow_destructive_operations.',
+                403
+            );
+        }
         $path = $request->get_param('path');
         if (!$path) {
             return Response::error('MISSING_PATH', 'Path parameter is required', 400);
