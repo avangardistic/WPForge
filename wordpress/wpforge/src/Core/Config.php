@@ -46,6 +46,7 @@ class Config
             'cors_origins' => [],
             'allowed_ips' => [],
             'blocked_ips' => [],
+            'trusted_proxies' => [],
             'public_status_enabled' => false,  // Disable public /status by default
             'public_health_enabled' => false,  // Disable public /health by default
             'redact_db_credentials' => true,    // Never expose DB credentials
@@ -89,15 +90,24 @@ class Config
      */
     public function all(): array
     {
-        if (null === $this->config) {
-            $stored = get_option(self::OPTION_NAME, []);
-            $this->config = array_merge($this->defaults, $stored);
-
-            // Set default filesystem root if not configured
-            if (empty($this->config['filesystem_root'])) {
-                $this->config['filesystem_root'] = ABSPATH;
-            }
+        $stored = get_option(self::OPTION_NAME, []);
+        if (!is_array($stored)) {
+            $stored = [];
         }
+
+        $config = array_merge($this->defaults, $stored);
+
+        if (isset($this->defaults['security']) && is_array($this->defaults['security'])) {
+            $storedSecurity = isset($stored['security']) && is_array($stored['security']) ? $stored['security'] : [];
+            $config['security'] = array_merge($this->defaults['security'], $storedSecurity);
+        }
+
+        // Set default filesystem root if not configured
+        if (empty($config['filesystem_root'])) {
+            $config['filesystem_root'] = ABSPATH;
+        }
+
+        $this->config = $config;
 
         return $this->config;
     }
@@ -244,6 +254,19 @@ class Config
     public function getSecurityConfig(): array
     {
         return $this->get('security', []);
+    }
+
+    /**
+     * Get trusted proxy IPs or CIDR ranges.
+     *
+     * @return string[]
+     */
+    public function getTrustedProxies(): array
+    {
+        $security = $this->getSecurityConfig();
+        $proxies = $security['trusted_proxies'] ?? [];
+
+        return is_array($proxies) ? $proxies : [];
     }
 
     /**

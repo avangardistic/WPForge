@@ -42,6 +42,7 @@ class Plugin
         try {
             $this->loadConfig();
             $this->initLogging();
+            $this->initMiddleware();
             $this->registerHooks();
             $this->initialized = true;
 
@@ -76,6 +77,12 @@ class Plugin
         $this->container->set('logger', $logger);
     }
 
+    private function initMiddleware(): void
+    {
+        $config = $this->container->get('config');
+        $this->container->set('rate_limit', new \WPForge\API\Middleware\RateLimit($config));
+    }
+
     private function registerHooks(): void
     {
         register_activation_hook(WPFORGE_PLUGIN_FILE, [$this, 'activate']);
@@ -83,6 +90,7 @@ class Plugin
 
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_filter('rest_authentication_errors', [$this, 'authenticateRestRequest']);
+        add_filter('rest_pre_dispatch', [$this, 'enforceRateLimit'], 10, 3);
 
         // Register the wp-admin UI right away (at plugins_loaded) instead of
         // deferring to admin_init: WP fires the 'admin_menu' action while it
@@ -124,6 +132,38 @@ class Plugin
         }
 
         return new \WP_Error('wpforge_invalid_token', 'Invalid or expired WPForge API token.', ['status' => 401]);
+    }
+
+    /**
+     * Global REST dispatch filter — enforces per-IP rate limiting on WPForge routes.
+     */
+    public function enforceRateLimit(mixed $result, \WP_REST_Server $server, \WP_REST_Request $request): mixed
+    {
+        if ($result !== null) {
+            return $result;
+        }
+
+        $route = $request->get_route();
+        $prefix = '/' . WPFORGE_NAMESPACE;
+        if ($route !== $prefix && strpos($route, $prefix . '/') !== 0) {
+            return $result;
+        }
+
+        $rateLimit = $this->container->get('rate_limit');
+        if (!$rateLimit instanceof \WPForge\API\Middleware\RateLimit) {
+            $config = $this->container->get('config') ?: new Config();
+            $rateLimit = new \WPForge\API\Middleware\RateLimit($config);
+            $this->container->set('rate_limit', $rateLimit);
+        }
+
+        $check = $rateLimit($request);
+        if ($check instanceof \WP_Error) {
+            $data = $check->get_error_data();
+            $status = is_array($data) && isset($data['status']) ? (int) $data['status'] : 429;
+            return \WPForge\API\Response::error('RATE_LIMITED', $check->get_error_message(), $status);
+        }
+
+        return $result;
     }
 
     /**

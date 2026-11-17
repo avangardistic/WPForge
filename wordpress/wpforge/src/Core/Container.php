@@ -14,7 +14,7 @@ class Container
     private array $shared = [];
 
     /** Services that should be treated as singletons. */
-    private const SHARED = ['logger', 'config'];
+    private const SHARED = ['logger', 'config', 'rate_limit'];
 
     public function set(string $name, mixed $service): void
     {

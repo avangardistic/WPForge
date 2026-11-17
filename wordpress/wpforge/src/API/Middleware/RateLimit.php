@@ -30,7 +30,7 @@ class RateLimit
         $maxRequests = $this->config->getRateLimitRequests();
 
         $optionKey = 'wpforge_ratelimit_' . md5($ip);
-        $transient  = get_transient($optionKey);
+        $transient = get_transient($optionKey);
 
         if ($transient === false) {
             set_transient($optionKey, 1, $window);
@@ -53,22 +53,105 @@ class RateLimit
 
     private function getClientIp(): string
     {
-        $headers = [
-            'HTTP_CLIENT_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'REMOTE_ADDR',
-        ];
-
-        foreach ($headers as $header) {
-            if (!empty($_SERVER[$header])) {
-                $raw = sanitize_text_field(wp_unslash($_SERVER[$header]));
-                $ip  = trim(explode(',', $raw)[0]);
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
-                }
+        $remoteAddr = '0.0.0.0';
+        if (!empty($_SERVER['REMOTE_ADDR'])) {
+            $candidate = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
+            if (filter_var($candidate, FILTER_VALIDATE_IP)) {
+                $remoteAddr = $candidate;
             }
         }
 
-        return '0.0.0.0';
+        $trustedProxies = $this->config->getTrustedProxies();
+        if (empty($trustedProxies) || !$this->isIpInList($remoteAddr, $trustedProxies)) {
+            return $remoteAddr;
+        }
+
+        if (empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $remoteAddr;
+        }
+
+        $raw = sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
+        $parts = array_reverse(array_map('trim', explode(',', $raw)));
+
+        foreach ($parts as $ip) {
+            if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $remoteAddr;
+            }
+            if (!$this->isIpInList($ip, $trustedProxies)) {
+                return $ip;
+            }
+        }
+
+        return $remoteAddr;
+    }
+
+    /**
+     * Check whether an IP matches any entry (exact IP or CIDR) in a list.
+     *
+     * @param string[] $list
+     */
+    private function isIpInList(string $ip, array $list): bool
+    {
+        foreach ($list as $entry) {
+            if (!is_string($entry)) {
+                continue;
+            }
+            $entry = trim($entry);
+            if ($entry === '') {
+                continue;
+            }
+            if ($this->ipMatches($ip, $entry)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function ipMatches(string $ip, string $cidrOrIp): bool
+    {
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        if (strpos($cidrOrIp, '/') === false) {
+            if (!filter_var($cidrOrIp, FILTER_VALIDATE_IP)) {
+                return false;
+            }
+            return inet_pton($ip) === inet_pton($cidrOrIp);
+        }
+
+        [$subnet, $prefixStr] = explode('/', $cidrOrIp, 2);
+        if (!is_numeric($prefixStr) || !filter_var($subnet, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        $ipBin = inet_pton($ip);
+        $subnetBin = inet_pton($subnet);
+        if ($ipBin === false || $subnetBin === false || strlen($ipBin) !== strlen($subnetBin)) {
+            return false;
+        }
+
+        $prefix = (int) $prefixStr;
+        $maxBits = strlen($ipBin) * 8;
+        if ($prefix < 0 || $prefix > $maxBits) {
+            return false;
+        }
+
+        $fullBytes = intdiv($prefix, 8);
+        $remainderBits = $prefix % 8;
+
+        if ($fullBytes > 0 && substr($ipBin, 0, $fullBytes) !== substr($subnetBin, 0, $fullBytes)) {
+            return false;
+        }
+
+        if ($remainderBits > 0) {
+            $mask = (0xFF << (8 - $remainderBits)) & 0xFF;
+            if ((ord($ipBin[$fullBytes]) & $mask) !== (ord($subnetBin[$fullBytes]) & $mask)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
