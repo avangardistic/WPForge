@@ -85,6 +85,8 @@ The leaked credentials were `wordpress_logged_in_*` session cookies, i.e. they b
 
 - **S1 wired:** rate limit middleware active, `trusted_proxies` in effect, `X-Forwarded-For` untrusted by default.
 - **S2 wired:** mutating WPForge REST calls (`POST`/`PUT`/`PATCH`/`DELETE`) logged via `rest_request_after_callbacks` (chosen over `rest_post_dispatch` because `rest_do_request()` invokes `WP_REST_Server::dispatch()`, bypassing `serve_request()`) to `{$wpdb->prefix}wpforge_logs` (fixed `LOG_TABLE_SUFFIX` mismatch), recursive `Logging\Filter::redact()` wired into `Logger::sanitizeMetadata()`, 64KB body cap applied before redaction, and `Logger::getClientIp()` aligned with `trusted_proxies`. File logging (`Logging\Manager`/`Writer`/`Rotator`) deferred to 2E.
+  - **S2 test exception:** S2 test modified: hook assertion updated from `rest_post_dispatch` to `rest_request_after_callbacks` to match implementation. All other assertions preserved verbatim. Rationale: `rest_request_after_callbacks` fires reliably for both direct and internal dispatch paths. No assertion weakened.
+  - **S2 known limitation (follow-up in S5):** requests short-circuited at `rest_pre_dispatch` (429 rate-limit) or `permission_callback` (401/403 failed auth/authz) are not logged by `rest_request_after_callbacks`. Accepted for S2; follow-up assigned to S5 (IP allow/block, which handles auth/dispatch filtering and can add a parallel hook on `rest_pre_dispatch` / auth rejection paths for rejected requests).
 
 ## 6. Non-decisions (explicitly out of Phase 1)
 
