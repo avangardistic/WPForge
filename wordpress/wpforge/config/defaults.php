@@ -45,6 +45,7 @@ return [
         'cors_origins'          => [],
         'allowed_ips'           => [],
         'blocked_ips'           => [],
+        'trusted_proxies'       => [],
 
         // When false, /status and /health require an authenticated user.
         // Leave false unless an external monitor genuinely needs them: both

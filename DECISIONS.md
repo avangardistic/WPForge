@@ -75,6 +75,16 @@ The leaked credentials were `wordpress_logged_in_*` session cookies, i.e. they b
 - **Production dependencies: 0 vulnerabilities** after in-range `npm audit fix` (commit `55d1141`; `package.json` byte-identical before/after, lockfile-only change, no new dependencies). Phase 1 had 8 prod findings (3 high: `zod` GHSA-mrhx-c7xc-m3w5, `follow-redirects` GHSA-mrwp-f3q8-3g9p, +1 high).
 - **Dev-only tooling: 20 findings remain (4 low, 16 moderate, 0 high)** — exclusively the jest/babel toolchain (`jest*`, `babel-*`, `ts-jest`, `minimatch`, `glob`, `deepmerge`, `test-exclude`). Not shipped, not in the MCP runtime path. Not fixed here because clearing them requires breaking major bumps (`npm audit fix --force`), outside the approved "existing bumps, no new dependencies" scope for 2A. **Re-evaluate at release** (and again if/when a test framework decision is revisited).
 
+### 2A-fix-1 amendment — PHPUnit `pipefail` bug & PR #46 trap state (2026-11-17)
+
+- **What happened:** Phase 2A (`4681a73`, PR #45) changed the PHPUnit CI steps in `.github/workflows/ci.yml` to `composer test:unit 2>&1 | tee "$RUNNER_TEMP/unit.out"` and `composer test:security 2>&1 | tee "$RUNNER_TEMP/security.out"` without `set -o pipefail`. Because GitHub Actions `bash` runs with `-e` only, `tee` masked any non-zero exit code from PHPUnit. Phase 2A acceptance was therefore based on job conclusions (`success`), not verified test results.
+- **Discovery & trap state:** During Phase 2B S1, three intentionally failing tests were committed (`bad6972`) on PR #46, and CI still reported `success` (`43910562771`) with unretrievable raw logs (`EOF`). PR #46 was then merged prematurely to `main` (`1028aadc`), leaving `main` in a trap state: `bad6972` (three failing S1 tests with no implementation) is on `main`, masked by the missing `pipefail`.
+- **Chosen path (2A-fix-1):** Fix forward on branch `arena/17f700ee-wpforge` — no history rewrite and no force-push are permitted. Commit 1 adds `set -o pipefail;` to both PHPUnit steps and `if: always()` `actions/upload-artifact@v7` steps (`phpunit-unit-logs-php{8.1,8.3}`, `phpunit-security-logs-php{8.1,8.3}`, 7-day retention) so CI fails loudly on PHPUnit failures and exposes test output. Commit 2 lands the S1 rate-limit fix to return `main` to genuine green.
+
+### Phase 2B progress
+
+- **S1 wired:** rate limit middleware active, `trusted_proxies` in effect, `X-Forwarded-For` untrusted by default.
+
 ## 6. Non-decisions (explicitly out of Phase 1)
 
 - No dependency upgrades (Dependabot remains owner; blocked on R2).

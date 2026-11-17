@@ -81,9 +81,25 @@ jobs:
         run: |
           bash tools/ci/install-wp-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wordpress }}
       - name: Run unit tests
-        run: composer test:unit 2>&1 | tee "$RUNNER_TEMP/unit.out"
+        run: set -o pipefail; composer test:unit 2>&1 | tee "$RUNNER_TEMP/unit.out"
+      - name: Upload unit test log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phpunit-unit-logs-php${{ matrix.php }}
+          path: ${{ runner.temp }}/unit.out
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Run security tests
-        run: composer test:security 2>&1 | tee "$RUNNER_TEMP/security.out"
+        run: set -o pipefail; composer test:security 2>&1 | tee "$RUNNER_TEMP/security.out"
+      - name: Upload security test log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: phpunit-security-logs-php${{ matrix.php }}
+          path: ${{ runner.temp }}/security.out
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Publish test counts to step summary
         if: always()
         run: |
