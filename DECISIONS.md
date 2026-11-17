@@ -84,7 +84,7 @@ The leaked credentials were `wordpress_logged_in_*` session cookies, i.e. they b
 ### Phase 2B progress
 
 - **S1 wired:** rate limit middleware active, `trusted_proxies` in effect, `X-Forwarded-For` untrusted by default.
-- **S2 wired:** mutating WPForge REST calls (`POST`/`PUT`/`PATCH`/`DELETE`) logged via `rest_post_dispatch` to `{$wpdb->prefix}wpforge_logs` (fixed `LOG_TABLE_SUFFIX` mismatch), recursive `Logging\Filter::redact()` wired into `Logger::sanitizeMetadata()`, 64KB body cap applied before redaction, and `Logger::getClientIp()` aligned with `trusted_proxies`. File logging (`Logging\Manager`/`Writer`/`Rotator`) deferred to 2E.
+- **S2 wired:** mutating WPForge REST calls (`POST`/`PUT`/`PATCH`/`DELETE`) logged via `rest_request_after_callbacks` (chosen over `rest_post_dispatch` because `rest_do_request()` invokes `WP_REST_Server::dispatch()`, bypassing `serve_request()`) to `{$wpdb->prefix}wpforge_logs` (fixed `LOG_TABLE_SUFFIX` mismatch), recursive `Logging\Filter::redact()` wired into `Logger::sanitizeMetadata()`, 64KB body cap applied before redaction, and `Logger::getClientIp()` aligned with `trusted_proxies`. File logging (`Logging\Manager`/`Writer`/`Rotator`) deferred to 2E.
 
 ## 6. Non-decisions (explicitly out of Phase 1)
 

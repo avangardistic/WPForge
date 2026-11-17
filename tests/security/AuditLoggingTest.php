@@ -40,14 +40,14 @@ class AuditLoggingTest extends WP_UnitTestCase
         parent::tearDown();
     }
 
-    public function testAuditLoggerIsRegisteredInRestPostDispatch(): void
+    public function testAuditLoggerIsRegisteredInRestRequestAfterCallbacks(): void
     {
         $plugin = Plugin::getInstance();
-        $priority = has_filter('rest_post_dispatch', [$plugin, 'auditLogMutation']);
+        $priority = has_filter('rest_request_after_callbacks', [$plugin, 'auditLogMutation']);
 
         $this->assertNotFalse(
             $priority,
-            'Audit logging listener must be registered on rest_post_dispatch.'
+            'Audit logging listener must be registered on rest_request_after_callbacks.'
         );
     }
 

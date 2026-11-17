@@ -91,7 +91,7 @@ class Plugin
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_filter('rest_authentication_errors', [$this, 'authenticateRestRequest']);
         add_filter('rest_pre_dispatch', [$this, 'enforceRateLimit'], 10, 3);
-        add_filter('rest_post_dispatch', [$this, 'auditLogMutation'], 10, 3);
+        add_filter('rest_request_after_callbacks', [$this, 'auditLogMutation'], 10, 3);
 
         // Register the wp-admin UI right away (at plugins_loaded) instead of
         // deferring to admin_init: WP fires the 'admin_menu' action while it
@@ -168,19 +168,19 @@ class Plugin
     }
 
     /**
-     * Global REST post-dispatch filter — records mutating WPForge API calls to wpforge_logs.
+     * Global REST dispatch filter — records mutating WPForge API calls to wpforge_logs.
      */
-    public function auditLogMutation(mixed $result, \WP_REST_Server $server, \WP_REST_Request $request): mixed
+    public function auditLogMutation(mixed $response, array $handler, \WP_REST_Request $request): mixed
     {
         $route = $request->get_route();
         $prefix = '/' . WPFORGE_NAMESPACE;
         if ($route !== $prefix && strpos($route, $prefix . '/') !== 0) {
-            return $result;
+            return $response;
         }
 
         $method = strtoupper($request->get_method());
         if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            return $result;
+            return $response;
         }
 
         $logger = $this->container->get('logger');
@@ -203,20 +203,26 @@ class Plugin
             $body = sprintf('[TRUNCATED] %d bytes', $bodySize);
         }
 
-        $status = $result instanceof \WP_HTTP_Response ? (int) $result->get_status() : 200;
-        $success = $status >= 200 && $status < 400;
+        $status = 200;
         $errorCode = null;
-
-        if (!$success && $result instanceof \WP_HTTP_Response) {
-            $data = $result->get_data();
-            if (is_array($data)) {
-                if (isset($data['error']['code']) && is_string($data['error']['code'])) {
-                    $errorCode = $data['error']['code'];
-                } elseif (isset($data['code']) && is_string($data['code'])) {
-                    $errorCode = $data['code'];
+        if ($response instanceof \WP_HTTP_Response) {
+            $status = (int) $response->get_status();
+            if ($status < 200 || $status >= 400) {
+                $data = $response->get_data();
+                if (is_array($data)) {
+                    if (isset($data['error']['code']) && is_string($data['error']['code'])) {
+                        $errorCode = $data['error']['code'];
+                    } elseif (isset($data['code']) && is_string($data['code'])) {
+                        $errorCode = $data['code'];
+                    }
                 }
             }
+        } elseif (is_wp_error($response)) {
+            $errData = $response->get_error_data();
+            $status = is_array($errData) && isset($errData['status']) ? (int) $errData['status'] : 500;
+            $errorCode = (string) $response->get_error_code();
         }
+        $success = $status >= 200 && $status < 400;
 
         $logger->log(
             $method . ' ' . $route,
@@ -232,7 +238,7 @@ class Plugin
             ]
         );
 
-        return $result;
+        return $response;
     }
 
     /**
