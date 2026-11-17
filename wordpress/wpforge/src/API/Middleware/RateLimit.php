@@ -53,6 +53,15 @@ class RateLimit
 
     private function getClientIp(): string
     {
+        return self::resolveClientIp($this->config);
+    }
+
+    /**
+     * Resolve client IP safely: trust REMOTE_ADDR unless it is in trusted_proxies,
+     * in which case walk X-Forwarded-For right-to-left to find the first untrusted IP.
+     */
+    public static function resolveClientIp(Config $config): string
+    {
         $remoteAddr = '0.0.0.0';
         if (!empty($_SERVER['REMOTE_ADDR'])) {
             $candidate = sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
@@ -61,8 +70,8 @@ class RateLimit
             }
         }
 
-        $trustedProxies = $this->config->getTrustedProxies();
-        if (empty($trustedProxies) || !$this->isIpInList($remoteAddr, $trustedProxies)) {
+        $trustedProxies = $config->getTrustedProxies();
+        if (empty($trustedProxies) || !self::isIpInList($remoteAddr, $trustedProxies)) {
             return $remoteAddr;
         }
 
@@ -77,7 +86,7 @@ class RateLimit
             if (!filter_var($ip, FILTER_VALIDATE_IP)) {
                 return $remoteAddr;
             }
-            if (!$this->isIpInList($ip, $trustedProxies)) {
+            if (!self::isIpInList($ip, $trustedProxies)) {
                 return $ip;
             }
         }
@@ -90,7 +99,7 @@ class RateLimit
      *
      * @param string[] $list
      */
-    private function isIpInList(string $ip, array $list): bool
+    private static function isIpInList(string $ip, array $list): bool
     {
         foreach ($list as $entry) {
             if (!is_string($entry)) {
@@ -100,7 +109,7 @@ class RateLimit
             if ($entry === '') {
                 continue;
             }
-            if ($this->ipMatches($ip, $entry)) {
+            if (self::ipMatches($ip, $entry)) {
                 return true;
             }
         }
@@ -108,7 +117,7 @@ class RateLimit
         return false;
     }
 
-    private function ipMatches(string $ip, string $cidrOrIp): bool
+    private static function ipMatches(string $ip, string $cidrOrIp): bool
     {
         if (!filter_var($ip, FILTER_VALIDATE_IP)) {
             return false;

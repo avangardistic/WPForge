@@ -7,6 +7,54 @@ namespace WPForge\Logging;
  */
 class Filter
 {
+    private const SENSITIVE_KEYS = [
+        'password',
+        'passwd',
+        'user_pass',
+        'secret',
+        'token',
+        'api_key',
+        'apikey',
+        'authorization',
+        'cookie',
+        'credential',
+        'private_key',
+        'access_key',
+    ];
+
+    /**
+     * Recursively redact sensitive keys from arrays (logs, metadata, request payloads).
+     */
+    public static function redact(mixed $data): mixed
+    {
+        if (!is_array($data)) {
+            return $data;
+        }
+
+        $redacted = [];
+        foreach ($data as $key => $value) {
+            if (is_string($key) && self::isSensitiveKey($key)) {
+                $redacted[$key] = '[REDACTED]';
+                continue;
+            }
+
+            $redacted[$key] = is_array($value) ? self::redact($value) : $value;
+        }
+
+        return $redacted;
+    }
+
+    private static function isSensitiveKey(string $key): bool
+    {
+        foreach (self::SENSITIVE_KEYS as $needle) {
+            if (stripos($key, $needle) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Filter log entries by level.
      */

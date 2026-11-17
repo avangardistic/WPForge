@@ -9,7 +9,7 @@ use WPForge\Core\Config;
  */
 class Logger
 {
-    private const LOG_TABLE_SUFFIX = '_wpforge_logs';
+    private const LOG_TABLE_SUFFIX = 'wpforge_logs';
     private const MAX_LOG_ENTRIES = 10000;
 
     private ?Config $config = null;
@@ -320,30 +320,8 @@ class Logger
      */
     private function sanitizeMetadata(array $metadata): array
     {
-        $sensitive_keys = [
-            'password',
-            'secret',
-            'token',
-            'api_key',
-            'apikey',
-            'authorization',
-            'cookie',
-            'credential',
-            'private_key',
-        ];
-
-        foreach ($sensitive_keys as $key) {
-            unset($metadata[$key]);
-
-            // Also check for partial matches
-            foreach (array_keys($metadata) as $meta_key) {
-                if (stripos($meta_key, $key) !== false) {
-                    unset($metadata[$meta_key]);
-                }
-            }
-        }
-
-        return $metadata;
+        $sanitized = Filter::redact($metadata);
+        return is_array($sanitized) ? $sanitized : [];
     }
 
     /**
@@ -351,14 +329,11 @@ class Logger
      */
     private function getClientIp(): ?string
     {
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            return sanitize_text_field(wp_unslash($_SERVER['HTTP_CLIENT_IP']));
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            return sanitize_text_field(wp_unslash($_SERVER['HTTP_X_FORWARDED_FOR']));
-        } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
-            return sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
+        if (empty($_SERVER['REMOTE_ADDR'])) {
+            return null;
         }
-        return null;
+
+        return \WPForge\API\Middleware\RateLimit::resolveClientIp($this->getConfig());
     }
 
     /**

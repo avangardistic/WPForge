@@ -91,6 +91,7 @@ class Plugin
         add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_filter('rest_authentication_errors', [$this, 'authenticateRestRequest']);
         add_filter('rest_pre_dispatch', [$this, 'enforceRateLimit'], 10, 3);
+        add_filter('rest_post_dispatch', [$this, 'auditLogMutation'], 10, 3);
 
         // Register the wp-admin UI right away (at plugins_loaded) instead of
         // deferring to admin_init: WP fires the 'admin_menu' action while it
@@ -162,6 +163,74 @@ class Plugin
             $status = is_array($data) && isset($data['status']) ? (int) $data['status'] : 429;
             return \WPForge\API\Response::error('RATE_LIMITED', $check->get_error_message(), $status);
         }
+
+        return $result;
+    }
+
+    /**
+     * Global REST post-dispatch filter — records mutating WPForge API calls to wpforge_logs.
+     */
+    public function auditLogMutation(mixed $result, \WP_REST_Server $server, \WP_REST_Request $request): mixed
+    {
+        $route = $request->get_route();
+        $prefix = '/' . WPFORGE_NAMESPACE;
+        if ($route !== $prefix && strpos($route, $prefix . '/') !== 0) {
+            return $result;
+        }
+
+        $method = strtoupper($request->get_method());
+        if (!in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            return $result;
+        }
+
+        $logger = $this->container->get('logger');
+        if (!$logger instanceof \WPForge\Logging\Logger) {
+            $logger = new \WPForge\Logging\Logger();
+            $this->container->set('logger', $logger);
+        }
+
+        $body = $request->get_json_params();
+        if (!is_array($body) || empty($body)) {
+            $body = $request->get_body_params();
+        }
+        if (!is_array($body)) {
+            $body = [];
+        }
+
+        $rawBody = $request->get_body();
+        $bodySize = strlen($rawBody !== '' ? $rawBody : (string) wp_json_encode($body));
+        if ($bodySize > 65536) {
+            $body = sprintf('[TRUNCATED] %d bytes', $bodySize);
+        }
+
+        $status = $result instanceof \WP_HTTP_Response ? (int) $result->get_status() : 200;
+        $success = $status >= 200 && $status < 400;
+        $errorCode = null;
+
+        if (!$success && $result instanceof \WP_HTTP_Response) {
+            $data = $result->get_data();
+            if (is_array($data)) {
+                if (isset($data['error']['code']) && is_string($data['error']['code'])) {
+                    $errorCode = $data['error']['code'];
+                } elseif (isset($data['code']) && is_string($data['code'])) {
+                    $errorCode = $data['code'];
+                }
+            }
+        }
+
+        $logger->log(
+            $method . ' ' . $route,
+            $route,
+            $success,
+            $status,
+            $errorCode,
+            [
+                'method'     => $method,
+                'route'      => $route,
+                'request_id' => RequestID::get(),
+                'body'       => $body,
+            ]
+        );
 
         return $result;
     }
