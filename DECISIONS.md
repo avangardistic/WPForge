@@ -81,6 +81,10 @@ The leaked credentials were `wordpress_logged_in_*` session cookies, i.e. they b
 - **Discovery & trap state:** During Phase 2B S1, three intentionally failing tests were committed (`bad6972`) on PR #46, and CI still reported `success` (`43910562771`) with unretrievable raw logs (`EOF`). PR #46 was then merged prematurely to `main` (`1028aadc`), leaving `main` in a trap state: `bad6972` (three failing S1 tests with no implementation) is on `main`, masked by the missing `pipefail`.
 - **Chosen path (2A-fix-1):** Fix forward on branch `arena/17f700ee-wpforge` — no history rewrite and no force-push are permitted. Commit 1 adds `set -o pipefail;` to both PHPUnit steps and `if: always()` `actions/upload-artifact@v7` steps (`phpunit-unit-logs-php{8.1,8.3}`, `phpunit-security-logs-php{8.1,8.3}`, 7-day retention) so CI fails loudly on PHPUnit failures and exposes test output. Commit 2 lands the S1 rate-limit fix to return `main` to genuine green.
 
+### Phase 2B progress
+
+- **S1 wired:** rate limit middleware active, `trusted_proxies` in effect, `X-Forwarded-For` untrusted by default.
+
 ## 6. Non-decisions (explicitly out of Phase 1)
 
 - No dependency upgrades (Dependabot remains owner; blocked on R2).
