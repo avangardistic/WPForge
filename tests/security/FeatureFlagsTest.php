@@ -63,11 +63,12 @@ class FeatureFlagsTest extends WP_UnitTestCase
         if (function_exists('deactivate_plugins')) {
             deactivate_plugins(self::DUMMY_PLUGIN, true);
         }
-        foreach ([
+        $cleanupPaths = [
             WP_PLUGIN_DIR . '/' . self::DUMMY_PLUGIN,
             ABSPATH . self::DUMMY_FILE_REL,
             WPFORGE_BACKUP_DIR . '/' . self::DUMMY_BACKUP_ID . '.sql',
-        ] as $path) {
+        ];
+        foreach ($cleanupPaths as $path) {
             if (file_exists($path)) {
                 unlink($path);
             }
