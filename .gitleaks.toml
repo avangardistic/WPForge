@@ -1,0 +1,19 @@
+title = "WPForge Gitleaks configuration"
+
+[[allowlists]]
+description = "Documented curl authentication placeholders only"
+condition = "AND"
+regexTarget = "line"
+paths = [
+  '''(^|/)docs/AUTHENTICATION\.md$''',
+  '''(^|/)docs/INSTALLATION\.md$''',
+  '''(^|/)docs/API_REFERENCE\.md$''',
+  '''(^|/)docs/README\.md$''',
+  '''(^|/)README\.md$''',
+]
+regexes = [
+  '''(?i)curl\s+-u\s+"(?:username|admin):xxxx(?: xxxx){5}"''',
+  '''(?i)curl\s+-u\s+"\$USER:\$APP_PASS"''',
+  '''(?i)curl\s+-u\s+"\$AUTH"''',
+  '''(?i)curl\s+-u\s+"user:password"''',
+]

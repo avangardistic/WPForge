@@ -90,4 +90,3 @@ register_rest_route($ns, '/files/delete', [
     },
     'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
-

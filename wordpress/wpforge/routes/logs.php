@@ -1,10 +1,12 @@
 <?php
 
 use WPForge\API\Response;
+use WPForge\Core\Config;
 use WPForge\Logging\Logger;
 
 $ns = WPFORGE_NAMESPACE;
 $logger = new Logger();
+$config = new Config();
 
 register_rest_route($ns, '/logs', [
     'methods'             => 'GET',
@@ -29,9 +31,12 @@ register_rest_route($ns, '/logs', [
 
 register_rest_route($ns, '/logs/clear', [
     'methods'             => 'DELETE',
-    'callback'            => function ($request) use ($logger) {
+    'callback'            => function ($request) use ($logger, $config) {
         if (!current_user_can('manage_options')) {
             return Response::error('FORBIDDEN', 'Permission denied', 403);
+        }
+        if (!$config->allowDestructiveOperations()) {
+            return Response::error('DESTRUCTIVE_OPERATIONS_DISABLED', 'Destructive operations are disabled', 403);
         }
         $logger->clearAll();
         return Response::success(['cleared' => true]);

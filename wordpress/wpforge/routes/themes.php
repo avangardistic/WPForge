@@ -47,4 +47,3 @@ register_rest_route($ns, '/themes/activate', [
     },
     'permission_callback' => \WPForge\API\Permissions::can('switch_themes'),
 ]);
-

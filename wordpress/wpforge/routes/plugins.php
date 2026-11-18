@@ -57,4 +57,3 @@ register_rest_route($ns, '/plugins/deactivate', [
     },
     'permission_callback' => \WPForge\API\Permissions::can('activate_plugins'),
 ]);
-
