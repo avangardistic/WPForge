@@ -2,8 +2,6 @@ title = "WPForge Gitleaks configuration"
 
 [[allowlists]]
 description = "Documented curl authentication placeholders only"
-condition = "AND"
-regexTarget = "line"
 paths = [
   '''(^|/)docs/AUTHENTICATION\.md$''',
   '''(^|/)docs/INSTALLATION\.md$''',
