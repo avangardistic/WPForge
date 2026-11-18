@@ -75,6 +75,9 @@ register_rest_route($ns, '/files/delete', [
         if (!current_user_can('edit_files')) {
             return Response::error('FORBIDDEN', 'Permission denied', 403);
         }
+        if (!$config->allowDestructiveOperations()) {
+            return Response::error('DESTRUCTIVE_OPERATIONS_DISABLED', 'Destructive operations are disabled', 403);
+        }
         $path = $request->get_param('path');
         if (!$path) {
             return Response::error('MISSING_PATH', 'Path parameter is required', 400);
@@ -87,3 +90,4 @@ register_rest_route($ns, '/files/delete', [
     },
     'permission_callback' => \WPForge\API\Permissions::can('manage_options'),
 ]);
+
