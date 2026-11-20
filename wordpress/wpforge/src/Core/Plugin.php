@@ -198,7 +198,11 @@ class Plugin
         }
 
         $rawBody = $request->get_body();
-        $bodySize = strlen($rawBody !== '' ? $rawBody : (string) wp_json_encode($body));
+        $bodyJson = wp_json_encode($body);
+        if ($bodyJson === false || $bodyJson === null) {
+            $bodyJson = '';
+        }
+        $bodySize = strlen($rawBody !== '' ? $rawBody : (string) $bodyJson);
         if ($bodySize > 65536) {
             $body = sprintf('[TRUNCATED] %d bytes', $bodySize);
         }
