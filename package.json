@@ -1,0 +1,14 @@
+{
+  "name": "wpforge",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "UIUX"
+  ],
+  "scripts": {
+    "dev": "npm --prefix UIUX run dev",
+    "build": "npm --prefix UIUX run build",
+    "lint": "npm --prefix UIUX run lint",
+    "preview": "npm --prefix UIUX run preview"
+  }
+}
