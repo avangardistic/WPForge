@@ -15,9 +15,9 @@ true. Turning on `allow_filesystem_writes` alone does nothing.
 | `filesystem_root` | `''` (→ `ABSPATH`) | Sandbox root for all file operations |
 | `allow_filesystem_writes` | `false` | Enables `POST /files/write` |
 | `allow_database_writes` | `false` | Permits non-`SELECT` statements |
-| `allow_plugin_installation` | `false` | Enables plugin install/activate |
+| `allow_plugin_installation` | `false` | Enables plugin activation and deactivation |
 | `allow_theme_activation` | `false` | Enables `POST /themes/activate` |
-| `allow_destructive_operations` | `false` | Deletes and other irreversible actions |
+| `allow_destructive_operations` | `false` | Enables file deletion, log clearing and backup deletion |
 | `audit_logging` | `true` | Write mutations to the log table and files |
 | `rate_limit_enabled` | `true` | Enable the rate-limit middleware |
 | `rate_limit_requests` | `100` | Requests allowed per window |

@@ -1,10 +1,12 @@
 <?php
 
 use WPForge\API\Response;
+use WPForge\Core\Config;
 use WPForge\WordPress\PluginManager;
 
 $ns = WPFORGE_NAMESPACE;
 $pm = new PluginManager();
+$config = new Config();
 
 register_rest_route($ns, '/plugins', [
     'methods'             => 'GET',
@@ -16,9 +18,12 @@ register_rest_route($ns, '/plugins', [
 
 register_rest_route($ns, '/plugins/activate', [
     'methods'             => 'POST',
-    'callback'            => function ($request) use ($pm) {
+    'callback'            => function ($request) use ($pm, $config) {
         if (!current_user_can('activate_plugins')) {
             return Response::error('FORBIDDEN', 'Permission denied', 403);
+        }
+        if (!$config->allowPluginInstallation()) {
+            return Response::error('PLUGIN_INSTALLATION_DISABLED', 'Plugin activation and deactivation are disabled', 403);
         }
         $plugin = $request->get_param('plugin');
         if (!$plugin) {
@@ -36,9 +41,12 @@ register_rest_route($ns, '/plugins/activate', [
 
 register_rest_route($ns, '/plugins/deactivate', [
     'methods'             => 'POST',
-    'callback'            => function ($request) use ($pm) {
+    'callback'            => function ($request) use ($pm, $config) {
         if (!current_user_can('activate_plugins')) {
             return Response::error('FORBIDDEN', 'Permission denied', 403);
+        }
+        if (!$config->allowPluginInstallation()) {
+            return Response::error('PLUGIN_INSTALLATION_DISABLED', 'Plugin activation and deactivation are disabled', 403);
         }
         $plugin = $request->get_param('plugin');
         if (!$plugin) {

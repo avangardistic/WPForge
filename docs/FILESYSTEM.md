@@ -8,7 +8,7 @@ path validator.
 | `/files/list`   | GET    | authenticated user |
 | `/files/read`   | GET    | authenticated user |
 | `/files/write`  | POST   | `edit_files` + `developer_mode` + `allow_filesystem_writes` |
-| `/files/delete` | DELETE | `edit_files` + `allow_destructive_operations` |
+| `/files/delete` | DELETE | `edit_files` + `developer_mode` + `allow_destructive_operations` |
 
 All four endpoints require the `manage_options` capability — reading arbitrary
 files is an administrator-level operation — and writes and deletes additionally
