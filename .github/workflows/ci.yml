@@ -81,22 +81,22 @@ jobs:
         run: |
           bash tools/ci/install-wp-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wordpress }}
       - name: Run unit tests
-        run: set -o pipefail; composer test:unit 2>&1 | tee "$RUNNER_TEMP/unit.out"
+        run: set -o pipefail; composer test:unit 2>&1 | tee "${RUNNER_TEMP}/unit.out"
       - name: Upload unit test log
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: phpunit-unit-logs-php${{ matrix.php }}
+          name: phpunit-unit-logs-${{ matrix.php }}
           path: ${{ runner.temp }}/unit.out
           retention-days: 7
           if-no-files-found: ignore
       - name: Run security tests
-        run: set -o pipefail; composer test:security 2>&1 | tee "$RUNNER_TEMP/security.out"
+        run: set -o pipefail; composer test:security 2>&1 | tee "${RUNNER_TEMP}/security.out"
       - name: Upload security test log
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: phpunit-security-logs-php${{ matrix.php }}
+          name: phpunit-security-logs-${{ matrix.php }}
           path: ${{ runner.temp }}/security.out
           retention-days: 7
           if-no-files-found: ignore
@@ -141,9 +141,6 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: mcp/package-lock.json
-      # npm ci (not npm install): installs strictly from package-lock.json and
-      # recreates .bin shims with executable bits — the previous failure mode
-      # was committed node_modules with mode-644 shims (tsc: Permission denied).
       - run: npm ci
       - run: npm run build
 
