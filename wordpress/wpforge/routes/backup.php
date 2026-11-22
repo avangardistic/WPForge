@@ -1,10 +1,12 @@
 <?php
 
 use WPForge\API\Response;
+use WPForge\Core\Config;
 use WPForge\Backup\Manager;
 
 $ns = WPFORGE_NAMESPACE;
 $backupManager = new Manager(WPFORGE_BACKUP_DIR);
+$config = new Config();
 
 register_rest_route($ns, '/backup', [
     'methods'             => 'POST',
@@ -43,9 +45,12 @@ register_rest_route($ns, '/backup/(?P<id>[a-zA-Z0-9_]+)', [
 
 register_rest_route($ns, '/backup/(?P<id>[a-zA-Z0-9_]+)', [
     'methods'             => 'DELETE',
-    'callback'            => function ($request) use ($backupManager) {
+    'callback'            => function ($request) use ($backupManager, $config) {
         if (!current_user_can('manage_options')) {
             return Response::error('FORBIDDEN', 'Permission denied', 403);
+        }
+        if (!$config->allowDestructiveOperations()) {
+            return Response::error('DESTRUCTIVE_OPERATIONS_DISABLED', 'Destructive operations are disabled', 403);
         }
         try {
             $backupManager->deleteBackup($request['id']);

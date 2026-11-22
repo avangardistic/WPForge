@@ -1,10 +1,12 @@
 <?php
 
 use WPForge\API\Response;
+use WPForge\Core\Config;
 use WPForge\WordPress\ThemeManager;
 
 $ns = WPFORGE_NAMESPACE;
 $tm = new ThemeManager();
+$config = new Config();
 
 register_rest_route($ns, '/themes', [
     'methods'             => 'GET',
@@ -25,9 +27,12 @@ register_rest_route($ns, '/themes/(?P<stylesheet>[a-zA-Z0-9_-]+)', [
 
 register_rest_route($ns, '/themes/activate', [
     'methods'             => 'POST',
-    'callback'            => function ($request) use ($tm) {
+    'callback'            => function ($request) use ($tm, $config) {
         if (!current_user_can('switch_themes')) {
             return Response::error('FORBIDDEN', 'You do not have permission to switch themes', 403);
+        }
+        if (!$config->allowThemeActivation()) {
+            return Response::error('THEME_ACTIVATION_DISABLED', 'Theme activation is disabled', 403);
         }
         $stylesheet = $request->get_param('theme');
         if (!$stylesheet) {

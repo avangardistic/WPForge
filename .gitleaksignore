@@ -1,0 +1,10 @@
+# Historical documentation examples only: literal placeholder credentials, not secrets.
+# Keep these scoped to the original commit, path, rule, and line so new leaks fail CI.
+7cf8447a7f7f19e54ccf7a7064c79311c485e749:docs/AUTHENTICATION.md:curl-auth-user:7
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:docs/api-reference.md:curl-auth-user:12
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:docs/installation.md:curl-auth-user:53
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:docs/installation.md:curl-auth-user:65
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:README.md:curl-auth-user:49
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:README.md:curl-auth-user:53
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:README.md:curl-auth-user:57
+1961667fccdc77f83d2dda3c20e8ebbe320527dc:README.md:curl-auth-user:61

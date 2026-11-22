@@ -202,6 +202,34 @@ class FeatureFlagsTest extends WP_UnitTestCase
     /**
      * @dataProvider gatedRoutesProvider
      */
+    public function testGatedRouteRemainsDisabledWhenItsFlagIsOff(
+        string $method,
+        string $route,
+        string $flag,
+        string $errorCode
+    ): void {
+        wp_set_current_user($this->adminId);
+        update_option('wpforge_config', [
+            'developer_mode' => true,
+            $flag            => false,
+        ]);
+
+        $response = rest_do_request($this->buildRequest($method, $route));
+        $data = $response->get_data();
+
+        $this->assertSame(403, $response->get_status());
+        $this->assertFalse($data['success'] ?? null);
+        $this->assertSame($errorCode, $data['error']['code'] ?? null);
+        if ($route === '/wpforge/v1/files/delete') {
+            $this->assertFileExists(ABSPATH . self::DUMMY_FILE_REL);
+        } elseif ($route === '/wpforge/v1/backup/' . self::DUMMY_BACKUP_ID) {
+            $this->assertFileExists(WPFORGE_BACKUP_DIR . '/' . self::DUMMY_BACKUP_ID . '.sql');
+        }
+    }
+
+    /**
+     * @dataProvider gatedRoutesProvider
+     */
     public function testGatedRouteRequiresCapabilityEvenWhenFlagsAreEnabled(
         string $method,
         string $route,
