@@ -1,3 +1,12 @@
+# Continuous integration for WPForge.
+#
+#   PHP plugin  PHPCS, `php -l` on every supported PHP version, PHPUnit unit and
+#               security suites against real WordPress + MySQL, plugin validation
+#   mcp/        TypeScript build of the MCP server
+#   UIUX/       type-check, lint and production build of the dashboard
+#   repository  gitleaks secret scan
+#
+# Job names are what branch protection matches on; rename them deliberately.
 name: CI
 
 on:
@@ -9,33 +18,51 @@ on:
 permissions:
   contents: read
 
+# One active run per branch or pull request. A new push cancels a superseded
+# pull-request run; runs on main always finish, so every merged commit keeps a
+# CI result.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    # Naming the shell makes GitHub run steps as `bash --noprofile --norc -eo
+    # pipefail {0}`; the implicit default is `bash -e {0}`, without pipefail.
+    # The PHPUnit steps depend on it: otherwise `composer test:* | tee` reports
+    # tee's exit status and hides failing tests (DECISIONS.md, 2A-fix-1).
+    shell: bash
 
 jobs:
   lint:
     name: PHPCS
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           coverage: none
           tools: composer:v2
-      - uses: ramsey/composer-install@v3
-      - run: composer lint
+      - uses: ramsey/composer-install@v4
+      - name: Run PHPCS
+        run: composer lint
 
   syntax:
     name: PHP ${{ matrix.php }} syntax
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         php: ['8.1', '8.2', '8.3', '8.4']
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
@@ -48,6 +75,7 @@ jobs:
   test:
     name: PHPUnit (WP ${{ matrix.wordpress }}, PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -70,105 +98,158 @@ jobs:
       WP_CORE_DIR: /tmp/wordpress
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mysqli
           coverage: none
           tools: composer:v2
-      - uses: ramsey/composer-install@v3
+      - uses: ramsey/composer-install@v4
       - name: Install the WordPress test environment
-        run: |
-          bash tools/ci/install-wp-tests.sh wordpress_test root root 127.0.0.1 ${{ matrix.wordpress }}
+        id: wp-env
+        run: bash tools/ci/install-wp-tests.sh wordpress_test root root 127.0.0.1 '${{ matrix.wordpress }}'
       - name: Run unit tests
-        run: set -o pipefail; composer test:unit 2>&1 | tee "${RUNNER_TEMP}/unit.out"
-      - name: Upload unit test log
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: phpunit-unit-logs-${{ matrix.php }}
-          path: ${{ runner.temp }}/unit.out
-          retention-days: 7
-          if-no-files-found: ignore
+        id: unit
+        run: composer test:unit 2>&1 | tee "$RUNNER_TEMP/unit.out"
+      # Runs even when the unit suite fails, so one CI run reports both suites.
       - name: Run security tests
-        run: set -o pipefail; composer test:security 2>&1 | tee "${RUNNER_TEMP}/security.out"
-      - name: Upload security test log
-        if: always()
+        id: security
+        if: ${{ !cancelled() && steps.wp-env.outcome == 'success' }}
+        run: composer test:security 2>&1 | tee "$RUNNER_TEMP/security.out"
+      - name: Report test results
+        if: ${{ !cancelled() }}
+        env:
+          TITLE: PHPUnit WP ${{ matrix.wordpress }} / PHP ${{ matrix.php }}
+          UNIT_OUTCOME: ${{ steps.unit.outcome }}
+          SECURITY_OUTCOME: ${{ steps.security.outcome }}
+        run: |
+          # Each suite's totals and failing tests go to the job summary and to
+          # one annotation per suite. Annotations appear on the run page and are
+          # readable through the REST API (check-runs/<job-id>/annotations) even
+          # where the raw logs cannot be downloaded.
+          escape() { local s=${1//'%'/'%25'}; s=${s//$'\r'/'%0D'}; printf '%s' "${s//$'\n'/'%0A'}"; }
+          report() {
+            local suite=$1 outcome=$2 log="$RUNNER_TEMP/$1.out" totals failed
+            if [ ! -s "$log" ]; then
+              echo "**${suite} suite**: did not run" >> "$GITHUB_STEP_SUMMARY"
+              return
+            fi
+            totals=$(grep -E '^(OK \(|Tests: )' "$log" | tail -n 1 || true)
+            failed=$(grep -E '^[0-9]+\) ' "$log" || true)
+            if [ -z "$totals" ]; then
+              # PHPUnit stopped before printing totals (fatal error, bootstrap).
+              totals='No PHPUnit totals line. Last lines of output:'
+              failed=$(grep -v '^[[:space:]]*$' "$log" | tail -n 5 || true)
+            fi
+            {
+              echo "**${suite} suite** (${outcome})"
+              echo '```'
+              printf '%s\n' "$totals"
+              if [ -n "$failed" ]; then printf '%s\n' "$failed"; fi
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            if [ "$outcome" = success ]; then
+              echo "::notice title=${TITLE} - ${suite} suite::$(escape "$totals")"
+            else
+              echo "::error title=${TITLE} - ${suite} suite::$(escape "${totals}${failed:+$'\n'$failed}")"
+            fi
+          }
+          echo "### ${TITLE}" >> "$GITHUB_STEP_SUMMARY"
+          report unit "$UNIT_OUTCOME"
+          report security "$SECURITY_OUTCOME"
+      - name: Upload test logs
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: phpunit-security-logs-${{ matrix.php }}
-          path: ${{ runner.temp }}/security.out
+          name: phpunit-logs-php${{ matrix.php }}-wp${{ matrix.wordpress }}
+          path: |
+            ${{ runner.temp }}/unit.out
+            ${{ runner.temp }}/security.out
           retention-days: 7
           if-no-files-found: ignore
-      - name: Publish test counts to step summary
-        if: always()
-        run: |
-          {
-            echo "### PHPUnit — WP ${{ matrix.wordpress }}, PHP ${{ matrix.php }}"
-            for suite in unit security; do
-              if [ -f "$RUNNER_TEMP/$suite.out" ]; then
-                echo "**${suite} suite**"
-                echo '```'
-                grep -E '^(Tests:|OK \(|[0-9]+\) )|FAILURES|ERRORS|Risky' "$RUNNER_TEMP/$suite.out" || echo "(no PHPUnit summary line found — see job log)"
-                echo '```'
-              else
-                echo "**${suite} suite**: did not run (step failed before start)"
-              fi
-            done
-          } >> "$GITHUB_STEP_SUMMARY"
 
   validate:
     name: Plugin validation
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.1'
           coverage: none
-      - run: php tools/validate/validate-plugin.php
+      - name: Validate the plugin
+        run: php tools/validate/validate-plugin.php
 
+  # Both Node jobs pass --workspaces=false to every npm command. The root
+  # package.json declares UIUX as an npm workspace, so without the flag npm,
+  # started inside UIUX/, treats the repository root as the project, looks for a
+  # root package-lock.json (there is none) and `npm ci` fails with EUSAGE. The
+  # flag keeps npm in the job's directory and its committed lockfile, the one
+  # Dependabot maintains. npm only honours it as a command-line flag (not via
+  # npm_config_* or .npmrc). mcp/ is not a workspace today; the flag keeps the
+  # job working if it becomes one.
   mcp:
     name: MCP server build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: mcp
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
           cache: npm
           cache-dependency-path: mcp/package-lock.json
-      - run: npm ci
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci --workspaces=false
+      - name: Build
+        run: npm run build --workspaces=false
 
   ui:
     name: Dashboard (UIUX) build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: UIUX
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
           cache: npm
           cache-dependency-path: UIUX/package-lock.json
-      - run: npm ci
-      - run: npx tsc --noEmit
-      - run: npx eslint . --ext .ts,.tsx
-      - run: npx vite build
+      - name: Install dependencies
+        run: npm ci --workspaces=false
+      # --no makes this fail if TypeScript is missing instead of letting npx
+      # download the unrelated `tsc` package from the registry.
+      - name: Type-check
+        run: npm exec --workspaces=false --no -- tsc --noEmit
+      - name: Lint
+        run: npm run lint --workspaces=false
+      - name: Build
+        run: npm run build --workspaces=false
 
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+          persist-credentials: false
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
